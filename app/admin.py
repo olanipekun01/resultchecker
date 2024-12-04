@@ -20,6 +20,11 @@ class CustomUserAdmin(UserAdmin):
         )
     )
     
+
+class StudentAdmin(admin.ModelAdmin):
+    list_display = ('otherNames', 'surname', 'programme', 'previous_programme', 'matricNumber')
+    search_fields = ('otherNames', 'surname', 'matricNumber')
+
 # Register your models here.
 admin.site.register(Student)
 admin.site.register(Level)

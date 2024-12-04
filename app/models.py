@@ -19,6 +19,17 @@ class CustomUser(AbstractUser):
     # date_joined = models.DateTimeField(auto_now_add=True)
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES)
 
+    # groups = models.ManyToManyField(
+    #     'auth.Group',
+    #     related_name='customuser_set',  # Custom related name to avoid conflict
+    #     blank=True
+    # )
+    # user_permissions = models.ManyToManyField(
+    #     'auth.Permission',
+    #     related_name='customuser_permissions_set',  # Custom related name to avoid conflict
+    #     blank=True
+    # )
+
     def __str__(self):
         return self.username
         
@@ -61,15 +72,29 @@ class Department(models.Model):
     def __str__(self):
         return self.name
 
+# class Programme(models.Model):
+#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+#     name = models.CharField(blank=True, null=True, max_length=500)
+#     department = models.ForeignKey(Department, on_delete=models.CASCADE)
+#     duration = models.IntegerField(blank=True, null=True)
+#     degree = models.CharField(blank=True, null=True, max_length=50)
+
+#     def __str__(self):
+#         return self.name
+    
 class Programme(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(blank=True, null=True, max_length=500)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    PROGRAMME_CHOICES = (
+        ('ond', 'OND Nursing'),
+        ('hnd', 'HND Nursing'),
+    )
+    name = models.CharField(max_length=20, choices=PROGRAMME_CHOICES, unique=True, null=True, blank=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
     duration = models.IntegerField(blank=True, null=True)
     degree = models.CharField(blank=True, null=True, max_length=50)
 
     def __str__(self):
-        return self.name
+        return self.get_name_display()
 
 
 class Student(models.Model):
@@ -84,8 +109,9 @@ class Student(models.Model):
     studentPhoneNumber = models.CharField(blank=True, null=True, max_length=15)
     college = models.ForeignKey(College, on_delete=models.CASCADE,  null=True, default=None)
     department = models.ForeignKey(Department, on_delete=models.CASCADE,  null=True, default=None)
-    programme = models.ForeignKey(Programme, on_delete=models.CASCADE,  null=True, default=None)
-    entrySession = models.ManyToManyField(Session, through='Enrollment', null=True, default=None)
+    programme = models.ForeignKey(Programme, on_delete=models.CASCADE, related_name='students', blank=True, null=True)
+    previous_programme = models.ForeignKey(Programme, on_delete=models.SET_NULL, null=True, blank=True, related_name='students_with_previous_programme')
+    entrySession = models.ManyToManyField(Session, through='Enrollment', related_name='entrySession', null=True, default=None)
     currentSession = models.CharField(blank=True, null=True, max_length=20)
     primaryEmail = models.CharField(blank=True, null=True, max_length=120)
     studentEmail = models.CharField(blank=True, null=True, max_length=120)
@@ -109,6 +135,10 @@ class Student(models.Model):
     
     def get_registered_courses(self):
         return self.registration_set.all()
+    
+    def is_transitioning_to_hnd(self):
+        # Check if the student has finished OND and is transitioning to HND
+        return self.programme.name == 'hnd' and self.previous_programme and self.previous_programme.name == 'ond'
 
 class Enrollment(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
@@ -149,7 +179,7 @@ class Course(models.Model):
     unit = models.IntegerField(blank=True, null=True)
     status = models.CharField(blank=True, null=True, max_length=2)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    programmes = models.ManyToManyField(Programme, related_name='courses')
+    programme = models.ForeignKey(Programme, on_delete=models.CASCADE, related_name='courses', null=True, blank=True, default="")
     level = models.ForeignKey(Level, on_delete=models.CASCADE)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE,  null=True, default=None)
 

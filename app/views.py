@@ -102,7 +102,82 @@ def generate_password(length=8):
 
 # Create your views here.
 
+
+from django.http import JsonResponse
+from django.contrib.auth import authenticate, login
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+
 # @login_required
 # @user_passes_test(is_student, login_url="/404")
 def Courses(request):
+
+
     return render(request, "user/courses.html", {"student": 'student'})
+
+def login_view(request):
+    if request.method == "POST":
+        email = request.POST["email"]
+        password = request.POST["password"]
+
+        try:
+            user = auth.authenticate(username=email, password=password)
+            # user = User.objects.get(email=email)
+            # if user.check_password(password):
+            #     # Log the user in (assuming you're using Django's session framework)
+            #     # login(request, user)
+            #     return redirect('/')  # Redirect to the dashboard or homepage
+            # else:
+            #     error_message = "Invalid password."
+            if user is not None:
+                auth.login(request, user)
+                if user.user_type == "student":
+                    return redirect("/")
+                elif user.user_type == "instructor":
+                    return redirect("/instructor/dashboard")
+                else:
+                    # Redirect user to a 404 page
+                    return redirect("/404")
+            # elif user is not None and user.user_type == 'student':
+            else:
+                error_message = "Invalid credentials!"
+                messages.info(request, f'Invalid credentials!')
+                # return redirect('/accounts/login')
+                return render(request, "authentication/login.html", {"error": error_message})
+        except User.DoesNotExist:
+            error_message = "Invalid credentials!"
+            messages.info(request, f'Invalid credentials!')
+            # return redirect('/accounts/login')
+            return render(request, "authentication/login.html", {"error": error_message})
+
+        return render(request, "login.html", {"error": error_message})
+
+    return render(request, "authentication/login.html")
+
+# def login_view(request):
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#             email = data.get('email')
+#             password = data.get('password')
+
+#             # Authenticate user
+#             print('data', email, password)
+#             user = authenticate(request, username=email, password=password)
+#             if user:
+#                 auth.login(request, user)
+#                 return JsonResponse({'message': 'Login successful'}, status=200)
+#             else:
+#                 return JsonResponse({'error': 'Invalid email or password'}, status=401)
+
+#         except json.JSONDecodeError:
+#             return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+#     return render(request, "authentication/login.html")
+
+
+@login_required
+def logout(request):
+    auth.logout(request)
+    return redirect("/")
