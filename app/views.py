@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.urls import reverse
 # from .forms import UserSignupForm, StudentSignupForm, InstructorSignupForm
 from .models import *
-from django.db.models import Q
+from django.db.models import Max, Q, F
 import uuid
 import random
 import string
@@ -109,12 +109,92 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 
 
-# @login_required
-# @user_passes_test(is_student, login_url="/404")
+@login_required
+@user_passes_test(is_student, login_url="/404")
 def Courses(request):
+    if request.user.is_authenticated:
+        user = request.user
+        student = get_object_or_404(Student, user=user)
+    
+    level = get_object_or_404(Level, name=student.currentLevel)
+    current_session_model = Session.objects.filter(is_current=True).first()
+    current_semester_model = Semester.objects.filter(is_current=True).first()
+    courses = Course.objects.filter(
+        level=level, 
+        programme=student.programme, 
+        semester=current_semester_model,
+    )
+
+    carryover_courses = Registration.objects.filter(
+        student=student,
+        semester=current_semester_model,
+    ).filter(~Q(grade_remark='passed'))
+
+    # carryover_courses = (
+    #     Registration.objects.filter(
+    #         student=student,
+    #     ).filter(~Q(grade_remark='passed'))
+    #     .annotate(latest_registration=Max('registration_date'))  # Find the latest registration for each course
+    #     .filter(registration_date=F('latest_registration'))  # Ensure only the latest registration is returned
+    # )
+
+    
+
+    carryover_courses = (
+        Registration.objects.filter(student=student)  # Filter by student
+        .annotate(latest_registration_date=Max('registration_date'))  # Get the latest registration date for each course
+        .filter(
+            registration_date=F('latest_registration_date')  # Ensure it's the latest registration
+        )
+        .exclude(grade_remark='passed')  # Exclude courses with grade_remark = 'passed'
+    )
+
+    registrations = Registration.objects.filter(student=student).select_related('session')
 
 
-    return render(request, "user/courses.html", {"student": 'student'})
+    # Calculate level for each session
+    sessions_and_levels = []
+    for registration in registrations:
+        session_year = int(registration.session.year.split('/')[0])
+        # Calculate the difference in years
+        years_since_enrollment = session_year - enrollment_year
+        # Calculate the level, assuming the student starts at Level 100 and progresses yearly
+        current_level = 100 + (years_since_enrollment * 100)
+        
+        sessions_and_levels.append({
+            'session': registration.session.year,
+            'level': current_level,
+            'registration': registration,  # Add any course details if necessary
+        })
+
+    unique_sessions = sorted({entry['session'] for entry in sessions_and_levels})
+    
+    unique_levels = sorted({entry['level'] for entry in sessions_and_levels})
+
+    # courses = Course.objects.all()
+
+    duration = 0
+    if len(unique_levels) == len(unique_sessions):
+        duration = len(unique_levels)
+
+    
+    return render(
+        request,
+        "user/courses.html",
+        {
+            "courses": courses,
+            "student": student,
+            "sess": current_session_model,
+            "semes": current_semester_model,
+            "carryover": carryover_courses,
+            'sessions_and_levels': sessions_and_levels,
+            'unique_sessions': unique_sessions, 
+            'unique_levels': unique_levels, 
+            'duration':duration,
+        },
+    )
+
+    # return render(request, "user/courses.html", {"student": 'student'})
 
 def login_view(request):
     if request.method == "POST":

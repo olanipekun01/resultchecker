@@ -172,12 +172,17 @@ class Semester(models.Model):
 
 
 class Course(models.Model):
+    COURSE_CHOICES = (
+        ('compulsory', 'C'),
+        ('elective', 'E'),
+        ('recommendation', 'R'),
+    )
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(blank=True, null=True, max_length=500)
     courseCode = models.CharField(blank=True, null=True, max_length=15)
     # courseDescription = models.CharField(blank=True, null=True, max_length=250)
     unit = models.IntegerField(blank=True, null=True)
-    status = models.CharField(blank=True, null=True, max_length=2)
+    status = models.CharField(blank=True, choices=COURSE_CHOICES, default='C', null=True, max_length=40)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     programme = models.ForeignKey(Programme, on_delete=models.CASCADE, related_name='courses', null=True, blank=True, default="")
     level = models.ForeignKey(Level, on_delete=models.CASCADE)

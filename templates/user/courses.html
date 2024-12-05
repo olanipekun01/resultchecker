@@ -1,4 +1,6 @@
 {% load static %}
+{% load custom_tags %}
+{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -76,31 +78,60 @@
         <!-- Harmattan Semester -->
         <section class="space-y-4">
           <h2 class="text-xl font-semibold mb-4">Harmattan Semester</h2>
-          <div class="bg-[#6A32A1] text-white p-4 mb-4">
+          <div class="bg-[#6A32A1] text-white p-4 mb-4 flex flex-row justify-between">
             <h3 class="text-lg font-semibold">My Prescribed Courses</h3>
+
+            <span id="totalUnits">0</span>
           </div>
-          <table class="min-w-full border-collapse border border-gray-200">
-            <thead>
-              <tr>
-                <th class="border border-gray-200 p-2">Course Code</th>
-                <th class="border border-gray-200 p-2">Course Name</th>
-                <th class="border border-gray-200 p-2">Credit Units</th>
-                <th class="border border-gray-200 p-2">Semester</th>
-                <th class="border border-gray-200 p-2">Course Status</th>
-                <th class="border border-gray-200 p-2">Options</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="border border-gray-200 p-2">CHM101</td>
-                <td class="border border-gray-200 p-2">Intro to Chemistry</td>
-                <td class="border border-gray-200 p-2">3</td>
-                <td class="border border-gray-200 p-2">First Semester</td>
-                <td class="border border-gray-200 p-2">Required</td>
-                <td class="border border-gray-200 p-2"><button>add</button></td>
-              </tr>
-            </tbody>
-          </table>
+          <form class='flex flex-col gap-4' method='post' action='/coursemain'>
+            {% csrf_token %}
+            <p id="warning" style="color: red; display: none;">You have exceeded the maximum allowed units!</p>
+            <table class="min-w-full border-collapse border border-gray-200">
+              <thead>
+                <tr>
+                  <th class="border border-gray-200 p-2">Check</th>
+                  <th class="border border-gray-200 p-2">Course Code</th>
+                  <th class="border border-gray-200 p-2">Course Name</th>
+                  <th class="border border-gray-200 p-2">Credit Units</th>
+                  <th class="border border-gray-200 p-2">Semester</th>
+                  <th class="border border-gray-200 p-2">Course Status</th>
+                  {% comment %} <th class="border border-gray-200 p-2">Options</th> {% endcomment %}
+                </tr>
+              </thead>
+              <tbody>
+                  <input type="hidden" name="sess" value="{{ sess }}">
+                  <input type="hidden" name="semes" value="{{ semes }}">
+                  <input type="text" id="inputTotalUnits" name="totalUnit" value="{{ semes }} ">
+                  {% if carryover %}
+                    {% for co in carryover %}
+                      <tr>
+                        <td class='tbodytrtd '><input type="checkbox" data-unit="3" name='courses' value="{{course.id}}" class="course-checkbox"/></td>
+                        <td class="border border-gray-200 p-2">{{co.course.courseCode}}</td>
+                        <td class="border border-gray-200 p-2">{{co.course.title}}</td>
+                        <td class="border border-gray-200 p-2">{{co.course.unit}}</td>
+                        <td class="border border-gray-200 p-2">{{semes}} Semester</td>
+                        <td class="border border-gray-200 p-2">C</td>
+                        {% comment %} <td class="border border-gray-200 p-2"><button>add</button></td> {% endcomment %}
+                      </tr>
+                    {% endfor %}
+                  {% endif %}
+                {% for course in courses %}
+                <tr>
+                  <td class='tbodytrtd '><input type="checkbox" data-unit="3" name='courses' value="{{course.id}}" class="course-checkbox"/></td>
+                  <td class="border border-gray-200 p-2">{{course.courseCode}}</td>
+                  <td class="border border-gray-200 p-2">{{course.title}}</td>
+                  <td class="border border-gray-200 p-2">{{course.unit}}</td>
+                  <td class="border border-gray-200 p-2">{{semes}} Semester</td>
+                  <td class="border border-gray-200 p-2">{{course.status}}</td>
+                  {% comment %} <td class="border border-gray-200 p-2"><button>add</button></td> {% endcomment %}
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+            <button class='bg-[#077105] text-[#fff] px-[15px] py-[10px] hover:bg-[#fff] hover:text-[#077105] hover:border-[1px] hover:border-[#077105]'>Submit</button>
+        
+        </form>
         </section>
 
         <!-- Rain Semester -->
@@ -134,40 +165,97 @@
         </section>
       </div>
 
-
-    <div class="bg-[#6A32A1] text-white p-4 mb-4">
-      <h3 class="text-lg font-semibold">Harmattan Semester</h3>
-    </div>
-    <div class="rounded-md border mt-4 bg-white shadow-sm">
     
-    <!-- Header -->
-    <div class="p-4 text-center">
-      <h3 class="text-lg font-semibold">2024/2025 Academic Session Credit Units: 15</h3>
-    </div>
+    
+    {% if duration %}
+       {% for i in duration|custom_range %}
+      <div class="bg-[#6A32A1] text-white p-4 mb-4">
+        <h3 class="text-lg font-semibold">{{ unique_sessions|get_item:i }} Academic Session Credit Units: 15</h3>
+      </div>
+      <div class="rounded-md border mt-4 bg-white shadow-sm">
+        <div class="p-4 text-center">
+          <h3 class="text-lg font-semibold">Harmattan Semester</h3>
+        </div>
 
-    <!-- Table -->
-    <div class="overflow-x-auto">
-      <table class="w-full table-auto border-collapse border border-gray-200">
-        <!-- Table Header -->
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="border p-2 text-left">Course Code</th>
-            <th class="border p-2 text-left">Course Title</th>
-            <th class="border p-2 text-left">Credit Unit</th>
-            <th class="border p-2 text-left">Semester</th>
-            <th class="border p-2 text-left">Course Status</th>
-            <th class="border p-2 text-left">Approval Status</th>
-            <th class="border p-2 text-left">Approval Remark</th>
-            <th class="border p-2 text-left">Elective Group</th>
-            <th class="border p-2 text-left">Options</th>
-          </tr>
-        </thead>
-        <!-- Table Body -->
-        <tbody id="table-body">
-          <!-- Dynamic rows will be inserted here -->
-        </tbody>
-      </table>
-    </div>
+        <!-- Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full table-auto border-collapse border border-gray-200">
+            <!-- Table Header -->
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="border p-2 text-left">Course Code</th>
+                <th class="border p-2 text-left">Course Title</th>
+                <th class="border p-2 text-left">Credit Unit</th>
+                <th class="border p-2 text-left">Semester</th>
+                <th class="border p-2 text-left">Course Status</th>
+                <th class="border p-2 text-left">Approval Status</th>
+                <th class="border p-2 text-left">Options</th>
+              </tr>
+            </thead>
+            <!-- Table Body -->
+            <tbody id="table-body">
+              <!-- Dynamic rows will be inserted here -->
+              {% for data in sessions_and_levels %}
+                  {% if  data.level == unique_levels|get_item:i and data.registration.course.semester.name == 'first' %}
+                  <tr>
+                    <td class="border p-2 text-left">{{data.registration.course.courseCode}}</td>
+                    <td class="border p-2 text-left">{{data.registration.course.title}}</td>
+                    <td class="border p-2 text-left">{{data.registration.course.unit}}</td>
+                    <td class="border p-2 text-left">{{data.registration.course.semester.name}}</td>
+                    <td class="border p-2 text-left">{{data.registration.course.status}}</td>
+                    <td class="border p-2 text-left">{{courseStatusLevel}}</td>
+                    <td class="border p-2 text-left">Options</td>
+                  </tr>
+                {% endif %}
+            {% endfor %}
+
+            </tbody>
+          </table>
+        </div>
+
+        <div class="p-4 text-center">
+          <h3 class="text-lg font-semibold">Rain Semester</h3>
+        </div>
+
+      <!-- Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full table-auto border-collapse border border-gray-200">
+            <!-- Table Header -->
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="border p-2 text-left">Course Code</th>
+                <th class="border p-2 text-left">Course Title</th>
+                <th class="border p-2 text-left">Credit Unit</th>
+                <th class="border p-2 text-left">Semester</th>
+                <th class="border p-2 text-left">Course Status</th>
+                <th class="border p-2 text-left">Approval Status</th>
+                <th class="border p-2 text-left">Options</th>
+              </tr>
+            </thead>
+            <!-- Table Body -->
+            <tbody id="table-body">
+              <!-- Dynamic rows will be inserted here -->
+              {% for data in sessions_and_levels %}
+                  {% if  data.level == unique_levels|get_item:i and data.registration.course.semester.name == 'second' %}
+                  <tr>
+                    <td class="border p-2 text-left">{{data.registration.course.courseCode}}</td>
+                    <td class="border p-2 text-left">{{data.registration.course.title}}</td>
+                    <td class="border p-2 text-left">{{data.registration.course.unit}}</td>
+                    <td class="border p-2 text-left">{{data.registration.course.semester.name}}</td>
+                    <td class="border p-2 text-left">{{data.registration.course.status}}</td>
+                    <td class="border p-2 text-left">{{courseStatusLevel}}</td>
+                    <td class="border p-2 text-left">Options</td>
+                  </tr>
+                {% endif %}
+              {% endfor %}
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <hr class="mt-4">
+      {% endfor %}
+    {% endif %}
     </main>
   </div>
 
@@ -175,6 +263,54 @@
 
   <script>
     // Display current date
+
+        document.addEventListener('DOMContentLoaded', function () {
+        const maxUnits = 24;  // Set the maximum allowable course units
+        let totalUnits = 0;
+
+        const courseCheckboxes = document.querySelectorAll('.course-checkbox');
+        const totalUnitsDisplay = document.getElementById('totalUnits');
+        const inputTotalUnits = document.getElementById('inputTotalUnits');
+        const warningMessage = document.getElementById('warning');
+
+        function updateUnits() {
+            totalUnits = 0;  // Reset the total units
+
+            // Loop through all checkboxes and sum the selected units
+            courseCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const courseUnit = parseInt(checkbox.getAttribute('data-unit'));
+                    totalUnits += courseUnit;
+                }
+            });
+
+            totalUnitsDisplay.textContent = totalUnits;
+            inputTotalUnits.value = totalUnits;
+            
+            if (totalUnits > maxUnits) {
+                warningMessage.style.display = 'block';
+                disableUnselectedCheckboxes(true);
+            } else {
+                warningMessage.style.display = 'none';
+                disableUnselectedCheckboxes(false);
+            }
+        }
+
+        function disableUnselectedCheckboxes(disable) {
+            courseCheckboxes.forEach(checkbox => {
+                if (!checkbox.checked) {
+                    checkbox.disabled = disable;
+                }
+            });
+        }
+
+        courseCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateUnits);
+        });
+
+        updateUnits();
+    });
+    
     document.getElementById("current-date").innerText = new Date().toDateString();
   </script>
 </body>
