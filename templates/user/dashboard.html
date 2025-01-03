@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load custom_tags %}
+{% load custom_filters %}
+
+
+{% load static %}
+
+{% block title %}Application - COET{% endblock %}
+
+{% block content %}
+
+  
+
+    <!-- Main Section -->
+    <main class="flex-1 p-6">
+        <div class="border rounded-lg shadow-sm">
+          <div class="border-b p-4">
+            <h2 class="text-2xl font-bold text-[#006400]">PERSONAL INFORMATION</h2>
+          </div>
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Photo Section -->
+              <div class="flex flex-col items-center gap-4">
+                <div class="h-48 w-48 bg-gray-200 rounded-full flex items-center justify-center">
+                  <span>Photo</span>
+                </div>
+                <span class="text-sm text-gray-500">Photograph</span>
+              </div>
+  
+              <!-- Information Columns -->
+              <div class="space-y-4 md:col-span-2">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                  <div>
+                    <div class="text-sm font-medium text-[#006400]">NAME:</div>
+                    <div class="text-sm">Otelo</div>
+                  </div>
+                  <div>
+                    <div class="text-sm font-medium text-[#006400]">PROGRAMME:</div>
+                    <div class="text-sm">Industrial Chemistry</div>
+                  </div>
+                  <!-- Add more information items here -->
+                </div>
+              </div>
+            </div>
+  
+            <!-- Additional Information -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 mt-8">
+              <div>
+                <div class="text-sm font-medium text-[#006400]">ENTRY YEAR:</div>
+                <div class="text-sm">2024</div>
+              </div>
+              <div>
+                <div class="text-sm font-medium text-[#006400]">STATE:</div>
+                <div class="text-sm">Lagos</div>
+              </div>
+              <!-- Add more additional information items here -->
+            </div>
+          </div>
+        </div>
+      </main>
+    {% endblock %}
+
+    {% block extra_scripts %}
+        <script type="text/javascript" src="{% static 'js/dashboard.js' %}"></script>
+    {% endblock %}

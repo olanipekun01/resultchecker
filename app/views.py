@@ -9,6 +9,9 @@ import uuid
 import random
 import string
 import json
+from django.core.exceptions import ObjectDoesNotExist
+
+from django.db.models import Sum, Min
 
 import os
 
@@ -42,6 +45,7 @@ from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth import get_user_model
 from django.forms.models import model_to_dict
 
+from functools import reduce
 
 from django.contrib import messages
 
@@ -59,6 +63,258 @@ UserModel = get_user_model()
 
 current_academic_session = "2025/2026"
 current_academic_semester = "second"
+
+
+def generate_pdf(reg_course, student, session, semester, confirmReg, gpa):
+    class PDF(FPDF, HTMLMixin):
+        def header(self):
+            # logo
+            self.image("aconsa_logo.png", 10, 4, 20)
+            # font
+            self.set_font("helvetica", "B", 14)
+            # padding
+            # self.cell(0)
+            # Title
+            self.cell(
+                179, 0, "ACHIEVERS COLLEGE OF NURSING SCIENCES, AKURE", border=False, ln=1, align="C"
+            )
+            # line break
+            self.ln(1)
+
+            self.set_font("helvetica", "B", 10)
+            # padding
+            # self.cell(75)
+            # Title
+            self.cell(
+                170,
+                7,
+                "a subsidiary of",
+                border=False,
+                ln=1,
+                align="C",
+            )
+            self.ln(1)
+
+            self.set_font("helvetica", "B", 11)
+            # padding
+            # self.cell(75)
+            # Title
+            self.cell(170, 5, "ACHIEVERS UNIVERSITY, OWO", border=False, ln=1, align="C")
+            self.ln(1)
+
+            self.set_font("helvetica", "B", 10)
+            # padding
+            # self.cell(75)
+            # Title
+            self.cell(
+                170,
+                7,
+                "www.achieversnursingcollege.edu.ng",
+                border=False,
+                ln=1,
+                align="C",
+            )
+            self.ln(1)
+
+            self.set_font("helvetica", "B", 11)
+            # padding
+            # self.cell(75)
+            # Title
+            self.cell(170, 5, "Notification of Result", border=False, ln=1, align="C")
+            self.ln(1)
+
+            
+            # logo
+            self.image("aconsa_logo.png", 170, 4, 23)
+
+    pdf = PDF("P", "mm", "Letter")
+
+    # set auto page break
+    pdf.set_auto_page_break(auto=True, margin=15)
+
+    pdf.add_page()
+
+    pdf.ln()
+
+    pdf.set_font("times", "B", 6)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(129, 4, f"Printed on: Monday 14th October 2024 || 12:06PM")
+
+    pdf.set_font("times", "B", 10)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(
+        0,
+        4,
+        f" {confirmReg.session.year} || {confirmReg.semester.name} SEMESTER",
+        ln=True,
+    )
+
+    pdf.set_font("times", "B", 10)
+    pdf.set_fill_color(6, 75, 37)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(
+        180, 7, f"   :. Students' Personal Information", ln=True, fill=True, align="L"
+    )
+
+    pdf.set_font("helvetica", "BIU", 13)
+    pdf.set_font("times", "B", 7)
+
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(60, 7, f"FUll NAME:")
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 7, f"{student.surname}, {student.otherNames}", ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(60, 7, f"MATRIC NO / JAMB NO:")
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 7, f"{student.matricNumber} [{student.jambNumber}]", ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(60, 7, f"FACULTY / COLLEGE:")
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 7, f"{student.college}", ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(60, 7, f"PROGRAMME:")
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 7, f"{student.programme}", ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(60, 7, f"DEGREE:")
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 7, f"{student.degree} {student.programme}", ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(60, 7, f"EMAIL / PHONE NO:")
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 7, f"{student.studentEmail} || {student.studentPhoneNumber}", ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(60, 7, f"LEVEL:")
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(
+        0,
+        7,
+        f"{confirmReg.level.name}",
+    )
+
+    if student.passport:
+        image_path = os.path.join(settings.MEDIA_ROOT, student.passport.name)
+
+        if os.path.exists(image_path):
+
+            pdf.image(image_path, 170, 58, 23)
+
+    pdf.ln()
+
+    # pdf.cell(100, 10, 'Title', border=0, fill=True)
+    # pdf.cell(15, 10, 'Unit', border=0, fill=True)
+
+    # pdf.set_font('Arial', 'B', 8)
+    # pdf.set_fill_color(0, 0, 0)
+    # pdf.set_text_color(255, 255, 255)
+    # pdf.cell(25, 8, 'Code', border=1, fill=True)
+    # pdf.cell(100, 8, 'Title', border=1, fill=True)
+    # pdf.cell(15, 8, 'Unit', border=1, fill=True)
+    # pdf.cell(15, 8, 'Status', border=1, fill=True)
+    # pdf.cell(30, 8, 'Signature', border=1, fill=True)
+    # pdf.ln()
+
+    # Add table rows with padding and borders
+    pdf.set_font("Arial", "B", 6)
+    pdf.set_text_color(0, 0, 0)
+    unit = 0
+    pdf.cell(25, 4, f"Code", border=1)
+    pdf.cell(100, 4, f"Title", border=1)
+    pdf.cell(15, 4, f"Unit", border=1)
+    pdf.cell(15, 4, f"Score", border=1)
+    pdf.cell(15, 4, f"Grade", border=1)
+    pdf.ln()
+    for co in reg_course:
+        pdf.cell(25, 4, f"{co.registration.course.courseCode}", border=1)
+        pdf.cell(100, 4, f"{co.registration.course.title}", border=1)
+        pdf.cell(15, 4, f"{co.registration.course.unit}", border=1)
+        pdf.cell(15, 4, f"{co.grade}", border=1)
+        pdf.cell(15, 4, f"{co.grade_type}", border=1)
+        
+        pdf.ln()
+        unit += co.registration.course.unit
+
+    pdf.set_font("Arial", "B", 6)
+    pdf.cell(25, 4, f"", border=1)
+    pdf.cell(100, 4, f"Total Registered Units", border=1)
+    pdf.cell(15, 4, f"{unit}", border=1)
+    pdf.cell(15, 4, f"GPA", border=1)
+    pdf.cell(15, 4, f"{gpa}", border=1)
+    pdf.ln()
+
+    pdf.set_font("helvetica", "BIU", 16)
+    pdf.set_font("times", "", 9)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 7, f"Key: C=Core, E=Elective, R=Required", ln=True)
+
+    pdf.ln(4)
+
+    pdf.set_font("helvetica", "BIU", 16)
+    pdf.set_font("times", "", 7)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(145, 7, f"Signature of Student: _____________________________________")
+    pdf.cell(0, 7, f"Date: __________________________", ln=True)
+
+    pdf.set_font("times", "B", 10)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(180, 7, f"FOR OFFICIAL USE ONLY", align="C", ln=True)
+
+    pdf.set_font("times", "B", 6)
+    pdf.set_text_color(255, 0, 0)
+    pdf.cell(
+        180,
+        2,
+        f"I certify that the above named student has submitted four(4) copies of his/her first semester course registration form and he/she is qualified to register the above listed courses",
+        align="C",
+        ln=True,
+    )
+
+    pdf.ln(6)
+
+    pdf.set_font("helvetica", "BIU", 16)
+    pdf.set_font("times", "", 7)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(145, 7, f"Signature of Academic Advisor: ____________________________")
+    pdf.cell(0, 7, f"Date: __________________________", ln=True)
+    pdf.ln(6)
+
+    pdf.set_font("helvetica", "BIU", 16)
+    pdf.set_font("times", "", 7)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(145, 7, f"Signature of H.O.D.: _____________________________________")
+    pdf.cell(0, 7, f"Date: __________________________", ln=True)
+    pdf.ln(6)
+
+    pdf.set_font("helvetica", "BIU", 16)
+    pdf.set_font("times", "", 7)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(145, 7, f"Signature of DEAN: _____________________________________")
+    pdf.cell(0, 7, f"Date: __________________________", ln=True)
+
+    pdf.ln(3)
+
+    pdf.set_font("times", "B", 6)
+    pdf.set_text_color(255, 0, 0)
+    pdf.cell(
+        180,
+        2,
+        f"Note:This form should be printed and returned to the Examination Officer at least Four weeks before the commencement of the examinations.",
+        align="C",
+        ln=True,
+    )
+    pdf.cell(
+        180,
+        2,
+        f"No Candidate shall be allowed to write any \nexamination in any course unless he/she has satisfied appropriate registration & finanacial regulations.",
+        align="C",
+    )
+
+    return pdf
+    # for i in range (1, 41):
+    #     pdf.cell(0, 10, f'This is line {i} :D', ln=True)
+    # pdf.output('fpdfdemo.pdf', 'F')
+
+
 
 
 def set_current_session(session_id):
@@ -111,90 +367,1012 @@ import json
 
 @login_required
 @user_passes_test(is_student, login_url="/404")
+def Dashboard(request):
+    if request.user.is_authenticated:
+        user = request.user
+        student = get_object_or_404(Student, user=user)
+
+        level = get_object_or_404(Level, name=student.currentLevel)
+        current_session_model = Session.objects.filter(is_current=True).first()
+        current_semester_model = Semester.objects.filter(is_current=True).first()   
+        
+        if request.method == "POST":
+            template = request.POST["template"]
+
+        return render(request, "user/dashboard.html")
+
+@login_required
+@user_passes_test(is_student, login_url="/404")
 def Courses(request):
     if request.user.is_authenticated:
         user = request.user
         student = get_object_or_404(Student, user=user)
-    
-    level = get_object_or_404(Level, name=student.currentLevel)
-    current_session_model = Session.objects.filter(is_current=True).first()
-    current_semester_model = Semester.objects.filter(is_current=True).first()
-    courses = Course.objects.filter(
-        level=level, 
-        programme=student.programme, 
-        semester=current_semester_model,
-    )
 
-    carryover_courses = Registration.objects.filter(
-        student=student,
-        semester=current_semester_model,
-    ).filter(~Q(grade_remark='passed'))
-
-    # carryover_courses = (
-    #     Registration.objects.filter(
-    #         student=student,
-    #     ).filter(~Q(grade_remark='passed'))
-    #     .annotate(latest_registration=Max('registration_date'))  # Find the latest registration for each course
-    #     .filter(registration_date=F('latest_registration'))  # Ensure only the latest registration is returned
-    # )
-
-    
-
-    carryover_courses = (
-        Registration.objects.filter(student=student)  # Filter by student
-        .annotate(latest_registration_date=Max('registration_date'))  # Get the latest registration date for each course
-        .filter(
-            registration_date=F('latest_registration_date')  # Ensure it's the latest registration
-        )
-        .exclude(grade_remark='passed')  # Exclude courses with grade_remark = 'passed'
-    )
-
-    registrations = Registration.objects.filter(student=student).select_related('session')
-
-
-    # Calculate level for each session
-    sessions_and_levels = []
-    for registration in registrations:
-        session_year = int(registration.session.year.split('/')[0])
-        # Calculate the difference in years
-        years_since_enrollment = session_year - enrollment_year
-        # Calculate the level, assuming the student starts at Level 100 and progresses yearly
-        current_level = 100 + (years_since_enrollment * 100)
+        level = get_object_or_404(Level, name=student.currentLevel)
+        current_session_model = Session.objects.filter(is_current=True).first()
+        current_semester_model = Semester.objects.filter(is_current=True).first()   
         
-        sessions_and_levels.append({
-            'session': registration.session.year,
-            'level': current_level,
-            'registration': registration,  # Add any course details if necessary
-        })
+        if request.method == "POST":
+            courses = request.POST.getlist(
+                "courses"
+            )  
+            # sess = request.POST["sess"]
+            # semes = request.POST["semes"]
+            totalUnit = request.POST["totalUnit"]
+            for id in courses:
+                
+                course = (get_object_or_404(Course, id=id),)
+                print("course name", course)
+                semester = current_semester_model
+                
 
-    unique_sessions = sorted({entry['session'] for entry in sessions_and_levels})
+                course_exist = Registration.objects.create(
+                    student=student,
+                    course=get_object_or_404(Course, id=id),
+                    session=current_session_model,
+                    semester=current_semester_model,
+                )
+                course_exist.save()
+
+            # Filter registrations for the student, session, and semester
+            registrations = Registration.objects.filter(
+                student=student,
+                session=current_session_model,
+                semester=current_semester_model
+            )
+
+            # Aggregate the total units by summing the 'unit' field of related courses
+            total_units = registrations.aggregate(total_units=Sum('course__unit'))['total_units']
+
+            # Handle the case where no registrations exist
+            total_units = total_units or 0  # Default to 0 if no units are found
+
+            print(f"Total units registered: {total_units}")
+
+            confirm_reg, created = confirmRegister.objects.get_or_create(
+                student=student,
+                session=current_session_model,
+                semester=current_semester_model,
+                level=get_object_or_404(Level, name=student.currentLevel),
+            )
+
+            if not created:
+                # Update the total units and registration date if the instance already exists
+                confirm_reg.totalUnits = total_units
+                confirm_reg.registration_date = now().date()
+                confirm_reg.save()
+            else:
+                # If a new instance was created, set the totalUnits and save
+                confirm_reg.totalUnits = total_units
+                confirm_reg.save()
+            return redirect("/courses/")
+        
+        level = get_object_or_404(Level, name=student.currentLevel)
+        current_session_model = Session.objects.filter(is_current=True).first()
+        current_semester_model = Semester.objects.filter(is_current=True).first()
+        try:
+            current_semester_model = Semester.objects.get(is_current=True)
+        except ObjectDoesNotExist:
+            raise ValueError("No current semester is set. Please set one as current.")
+
+        # Get the current session
+        try:
+            current_session_model = Session.objects.get(is_current=True)
+        except ObjectDoesNotExist:
+            raise ValueError("No current session is set. Please set one as current.")
+        
+        courses = Course.objects.filter(
+            level=level, 
+            programme=student.programme, 
+            semester=current_semester_model,
+        )
+
+        
+
+        registered_courses = Registration.objects.filter(
+            student=student, 
+            semester=current_semester_model,
+            session=current_session_model  # Ensure this is the current academic session
+        ).values_list('course', flat=True)
+
+        courses = courses.exclude(id__in=registered_courses)
+
+       
+        # Step 1: Retrieve the current session and semester
+        current_session = Session.objects.filter(is_current=True).first()
+        current_semester = Semester.objects.filter(is_current=True).first()
+
+        if not current_session or not current_semester:
+            raise ValueError("Current session or semester is not set. Please set them as current.")
+
+        # registrations = Registration.objects.filter(student=student)
+
+        # # Step 2: Filter registrations not in the current session AND current semester
+        # registrations = registrations.filter(
+        #     ~Q(session=current_session) & Q(semester=current_semester)
+        # )
+
+        # # Debugging: Print the filtered registrations
+        # print("Registrations not in current session and semester:", registrations)
+
+        # annotated_courses = registrations.annotate(latest_registration_date=Max('registration_date'))
+        # print('annotated_courses', annotated_courses)
+
+        # # Step 3: Filter only the latest registrations
+        # carryover_courses_unique = annotated_courses.filter(
+        #     registration_date=F('latest_registration_date')
+        # )
+
+        latest_attempts = Result.objects.filter(
+            registration__student=student  # Filter by the specific student
+        ).values('registration_id').annotate(
+            highest_attempt=Max('attempt_number')
+        )
+
+        # print('latests', latest_attempts)
+
+        # Step 2: Filter results with the highest attempt where the grade remark is not 'passed'
+        # failed_results = Result.objects.filter(
+        #     Q(attempt_number__in=[attempt['highest_attempt'] for attempt in latest_attempts]),
+        #     registration__student=student,  # Ensure we only consider the same student
+        #     grade_remark__in=['failed', 'pending']
+        # )
+
+        # failed_results = Result.objects.filter(
+        #     Q(
+        #         *[
+        #             Q(registration_id=attempt['registration_id'], attempt_number=attempt['highest_attempt'])
+        #             for attempt in latest_attempts
+        #         ]
+        #     ),
+        #     grade_remark__in=['failed', 'pending']  # Filter for failed or pending results
+        # )
+
+        # print('results', failed_results)
+
+        # Step 1: Verify latest attempts
+        latest_attempts = Result.objects.filter(
+            registration__student=student
+        ).values('registration_id').annotate(
+            highest_attempt=Max('attempt_number')
+        )
+        # print("Latest Attempts:", list(latest_attempts))
+
+        # Step 2: Construct the query for failed results
+        conditions = [
+            Q(registration_id=attempt['registration_id'], attempt_number=attempt['highest_attempt'])
+            for attempt in latest_attempts
+        ]
+
+        if conditions:
+            failed_results = Result.objects.filter(
+                reduce(lambda x, y: x | y, conditions),  # Combine conditions with OR
+                grade_remark__in=['failed', 'pending']
+            )
+            # print("Failed Results:", list(failed_results))
+        else:
+            failed_results = Result.objects.none()  # No conditions mean no results
+
+        # Final debug print
+        # print("Final Failed Results:", failed_results)
+
+
+        
+
+        # Step 1: Filter all registrations for the student
+        registrations = Registration.objects.filter(student=student)
+
+        # Step 2: Identify courses registered in the current session
+        courses_in_current_session = registrations.filter(
+            session=current_session
+        ).values_list('course_id', flat=True)
+
+        # Step 3: Filter registrations not in the current session, but in the current semester,
+        # and exclude any course that has been registered in the current session
+        registrations = registrations.filter(
+            ~Q(course_id__in=courses_in_current_session),  # Exclude courses registered in current session
+            semester=current_semester  # Include only courses in current semester
+        )
+
+        registrations = registrations.filter(
+            id__in=failed_results.values_list('registration_id', flat=True),
+            student=student  # Additional filter for the same student
+        )
+
+        # Debugging: Print the filtered registrations
+        # print("Registrations not in current session but in current semester:", registrations)
+
+        # Step 4: Annotate to get the latest registration date for each course
+        annotated_courses = registrations.annotate(latest_registration_date=Max('registration_date'))
+        # print('Annotated courses:', annotated_courses)
+
+        # Step 5: Filter only the latest registrations
+        carryover_courses_unique = annotated_courses.filter(
+            registration_date=F('latest_registration_date')
+        )
+
+        # Debugging: Print final carryover courses
+        # print("Final Carryover Courses:", carryover_courses_unique)
+
+
+        # print('latest_registrations', carryover_courses_unique)
+
+
+        registrations = Registration.objects.filter(student=student).select_related('session')
+        
+        enrollment = Enrollment.objects.filter(student=student).order_by('enrolled_date').first()
+
+        enrollment_year = int(enrollment.session.year.split('/')[0])
+
+        # Calculate level for each session
+        sessions_and_levels = []
+        for registration in registrations:
+            session_year = int(registration.session.year.split('/')[0])
+            # Calculate the difference in years
+            years_since_enrollment = session_year - enrollment_year
+            # Calculate the level, assuming the student starts at Level 100 and progresses yearly
+            current_level = 100 + (years_since_enrollment * 100)
+            
+            sessions_and_levels.append({
+                'session': registration.session.year,
+                'level': current_level,
+                'registration': registration,  # Add any course details if necessary
+            })
+        
+        cObjects = Course.objects.all().filter(department=student.department)
+        course_levels = []
+        for x in cObjects:
+            course_levels.append(x.level.name)
+        course_levels.sort(key=str)
+        course_levels = list(set(course_levels))
+        # print('course_levels', course_levels)
+
+        unique_sessions = sorted({entry['session'] for entry in sessions_and_levels})
+        
+        unique_levels = sorted({entry['level'] for entry in sessions_and_levels})
+
+        # courses = Course.objects.all()
+
+        duration = 0
+        if len(unique_levels) == len(unique_sessions):
+            duration = len(unique_levels)
+
+        
+        return render(
+            request,
+            "user/courses.html",
+            {
+                "courses": courses,
+                "student": student,
+                "sess": current_session_model,
+                "semes": current_semester_model,
+                "carryover": carryover_courses_unique,
+                'sessions_and_levels': sessions_and_levels,
+                'unique_sessions': unique_sessions, 
+                'unique_levels': unique_levels, 
+                'duration':duration,
+            },
+        )
+
+    # return render(request, "user/courses.html", {"student": 'student'})
+
+@login_required
+@user_passes_test(is_student, login_url="/404")
+def ResultFilter(request):
+    if request.user.is_authenticated:
+        user = request.user
+        student = get_object_or_404(Student, user=user)
+
+        level = get_object_or_404(Level, name=student.currentLevel)
+        current_session_model = Session.objects.filter(is_current=True).first()
+        current_semester_model = Semester.objects.filter(is_current=True).first() 
+
+        # Get the earliest session the student was enrolled in
+        earliest_session = student.entrySession.order_by('id').first()
+
+        print('earliest0', earliest_session)        
+        # Get all sessions from the earliest session onward
+        if earliest_session:
+            sessions_from_earliest = Session.objects.filter(id__gte=earliest_session.id)
+            print('session from earliest0', sessions_from_earliest)
+        else:
+            sessions_from_earliest = Session.objects.none()  # No sessions available
+
+        # Print sessions for debugging
+        
+        if request.method == "POST":
+            sess = request.POST["session-select"]
+            semes = request.POST["semester-select"]
+
+            session = get_object_or_404(Session, year=sess)
+            semester = get_object_or_404(Semester, name=semes)
+
+            registration = Result.objects.filter(registration__student=student, registration__session=session, registration__semester=semester)
+
+            if registration.exists():
+                # Get all attempts sorted by attempt date (latest first)
+                attempts = registration.order_by('result_date')
+                latest_attempt = attempts.first()
+
+                
+
+                # Use list comprehension to keep the latest result for each course
+                
+                # for registration in attempts:
+                #     if registration.registration.course.id not in processed_courses:
+                #         processed_courses.append(registration)
+                
+
+                # latest_results = (
+                #     registration.values('registration__course_id')  # Group by course
+                #     .annotate(latest_attempt_date=Max('result_date'))  # Find the latest result_date
+                # )
+
+                # # Filter the results to include only the latest attempts
+                # latest_attempts = Result.objects.filter(
+                #     registration__course_id__in=[result['registration__course_id'] for result in latest_results],
+                #     result_date__in=[result['latest_attempt_date'] for result in latest_results]
+                # ).order_by('registration__course__courseCode')  # Optional ordering
+
+                
+
+                # Calculate total credit units
+                total_credit_units = sum(course.registration.course.unit for course in attempts)
+
+                # Calculate total points
+                total_points = sum(course.total_point for course in attempts)
+
+                # Calculate GPA
+                gpa = total_points / total_credit_units if total_credit_units > 0 else 0
+
+                
+
+                return render(request, "user/resultview.html", {
+                    "status": "success",
+                    "latest_attempt": latest_attempt,
+                    "all_attempts": attempts,
+                    "results": attempts,
+                    "total_credit_units": total_credit_units,
+                    "total_points": total_points,
+                    "gpa": round(gpa, 2),
+                    "total_course": len(attempts),
+                    "session": session.year,
+                    "semester": semester.name,
+                })
+            else:
+                if not Result.objects.filter(registration__session=session, registration__semester=semester).exists():
+                    messages.error(request, "Results have not been uploaded yet for this session and semester.")
+                    return redirect("/result/filter")
+                else:
+                    messages.error(request, "No results found for this student in the selected session and semester.")
+                    return redirect("/result/filter")
+                    
+
+        return render(request, "user/resultfilter.html", {'sessions': sessions_from_earliest})
+
+@login_required
+@user_passes_test(is_student, login_url="/404")
+def ResultView(request):
+    if request.user.is_authenticated:
+        user = request.user
+        student = get_object_or_404(Student, user=user)
+
+        level = get_object_or_404(Level, name=student.currentLevel)
+        current_session_model = Session.objects.filter(is_current=True).first()
+        current_semester_model = Semester.objects.filter(is_current=True).first()   
+        
+        if request.method == "POST":
+            template = request.POST["template"]
+
+        return render(request, "user/resultview.html")
     
-    unique_levels = sorted({entry['level'] for entry in sessions_and_levels})
+@login_required
+@user_passes_test(is_student, login_url="/404")
+def ResultView(request):
+    if request.user.is_authenticated:
+        user = request.user
+        student = get_object_or_404(Student, user=user)
 
-    # courses = Course.objects.all()
+        level = get_object_or_404(Level, name=student.currentLevel)
+        current_session_model = Session.objects.filter(is_current=True).first()
+        current_semester_model = Semester.objects.filter(is_current=True).first()
 
-    duration = 0
-    if len(unique_levels) == len(unique_sessions):
-        duration = len(unique_levels)
+        if request.method == 'POST':
+            sess = request.POST['sess']
+            semes = request.POST['semes']
+            session = get_object_or_404(Session, year=sess)
+            semester = get_object_or_404(Semester, name=semes)
 
+            registration = Result.objects.filter(registration__student=student, registration__session=session, registration__semester=semester)
+
+            if registration.exists():
+                # Get all attempts sorted by attempt date (latest first)
+                print('reg i', registration)
+                attempts = registration.order_by('result_date')
+                print('reg ii', attempts)
+                latest_attempt = attempts.first()
+
+
+                # Calculate total credit units
+                total_credit_units = sum(course.registration.course.unit for course in attempts)
+
+                # Calculate total points
+                total_points = sum(course.total_point for course in attempts)
+
+                # Calculate GPA
+                gpa = total_points / total_credit_units if total_credit_units > 0 else 0
+
+                
+
+                reg_courses = Registration.objects.filter(
+                    student=student,
+                    semester=get_object_or_404(Semester, name=semes),
+                    session=get_object_or_404(Session, year=sess),
+                )
+
+                confirmReg = confirmRegister.objects.filter(
+                    student=student,
+                    semester=get_object_or_404(Semester, name=semes),
+                    session=get_object_or_404(Session, year=sess),
+                ).first()
+
+                gen = generate_pdf(attempts, student, sess, semes, confirmReg, gpa)
+
+                gen.output("fpdfdemo.pdf", "F")
+
+                response = HttpResponse(
+                    gen.output(dest="S").encode("latin1"), content_type="application/pdf"
+                )
+                # response['Content-Disposition'] = 'attachment; filename="fpdfdemo.pdf"'
+
+                response["Content-Disposition"] = 'inline; filename="preview.pdf"'
+                return response
+
+
+        return render(request, "user/resultfilter.html")
     
+
+@login_required
+@user_passes_test(is_student, login_url="/404")
+def Contact(request):
+    if request.user.is_authenticated:
+        user = request.user
+        student = get_object_or_404(Student, user=user)
+
+        level = get_object_or_404(Level, name=student.currentLevel)
+        current_session_model = Session.objects.filter(is_current=True).first()
+        current_semester_model = Semester.objects.filter(is_current=True).first()   
+        
+        if request.method == "POST":
+            template = request.POST["template"]
+
+        return render(request, "contact.html")
+
+
+@login_required
+@user_passes_test(is_instructor, login_url="/404")
+def adminDashboard(request):
+    if request.user.is_authenticated:
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        countProgrammes = len(
+            Programme.objects.filter(department=instructor.department)
+        )
+        countCourses = len(Course.objects.filter(department=instructor.department))
+
     return render(
         request,
-        "user/courses.html",
+        "admin/admin_dashboard.html",
         {
-            "courses": courses,
-            "student": student,
-            "sess": current_session_model,
-            "semes": current_semester_model,
-            "carryover": carryover_courses,
-            'sessions_and_levels': sessions_and_levels,
-            'unique_sessions': unique_sessions, 
-            'unique_levels': unique_levels, 
-            'duration':duration,
+            "countProgrammes": countProgrammes,
+            "countCourses": countCourses,
+            "department": instructor.department,
         },
     )
 
-    # return render(request, "user/courses.html", {"student": 'student'})
+@login_required
+@user_passes_test(is_instructor, login_url="/404")
+def adminProgrammeManagement(request):
+    if request.user.is_authenticated:
+
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        programmes = Programme.objects.filter(department=instructor.department)
+        # countCourses = len(Course.objects.filter(department=instructor.department))
+        if request.method == "POST":
+            programme_name = request.POST["programme_name"]
+            programme_duration = request.POST["programme_duration"]
+            programme_degree = request.POST["programme_degree"]
+
+            if (
+                programme_name != ""
+                and programme_duration != ""
+                and programme_degree != ""
+            ):
+                try:
+                    if Programme.objects.all().filter(name=programme_name).exists():
+                        messages.info(request, "Programme already exist!")
+                        return redirect("/instructor/programmes")
+
+                    programmeObjects = Programme.objects.create(
+                        name=programme_name,
+                        department=instructor.department,
+                        duration=programme_duration,
+                        degree=programme_degree,
+                    )
+                    programmeObjects.save()
+                    messages.info(request, "Programme Added!")
+                    return redirect("/instructor/programmes")
+                except:
+                    messages.info(request, f"Programme not available")
+                    return redirect("/instructor/programmes")
+            else:
+                messages.info(request, f"Fields cannot be empty")
+                return redirect("/instructor/programmes")
+
+    return render(
+        request,
+        "admin/admin_program_management.html",
+        {
+            "programmes": programmes,
+            "department": instructor.department,
+        },
+    )
+
+
+@login_required
+@user_passes_test(is_instructor, login_url="/404")
+def UpdateProgramme(request):
+    if request.user.is_authenticated:
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        if request.method == "POST":
+            p_id = request.POST["programme_id"]
+            p_name = request.POST["programme_name"].strip()
+            p_duration = request.POST["programme_duration"].strip()
+            p_degree = request.POST["programme_degree"].strip()
+
+            if p_name != "" and p_duration != "" and p_degree != "":
+                try:
+                    programmes = Programme.objects.filter(
+                        department=instructor.department, id=p_id
+                    )[0]
+                    programmes.name = p_name
+                    programmes.degree = p_degree
+                    programmes.duration = p_duration
+                    programmes.save()
+                    messages.info(request, f"Programme Updated")
+                    return redirect("/instructor/programmes")
+                except:
+                    messages.info(request, f"Programme not available")
+                    return redirect("/instructor/programmes")
+            messages.info(request, f"Fields cannot be empty")
+            return redirect("/instructor/programmes")
+        return redirect("/instructor/programmes")
+
+
+@login_required
+@user_passes_test(is_instructor, login_url="/404")
+def deleteProgramme(request, id):
+
+    try:
+        program = Programme.objects.filter(id=id)[0]
+        print("1", program.name)
+        if Programme.objects.all().filter(id=id).exists():
+            messages.info(request, f"{program.name} deleted successfully")
+            program = Programme.objects.filter(id=id).delete()
+
+            return redirect("/instructor/programmes")
+        messages.info(request, f"Programme not available")
+        return redirect("/instructor/programmes")
+    except:
+        messages.info(request, f"Programme not available")
+        return redirect("/instructor/programmes")
+
+
+@login_required
+@user_passes_test(is_instructor, login_url="/404")
+def adminCourseManagement(request):
+    if request.user.is_authenticated:
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        # courses = Course.objects.all().filter(department=instructor.department)
+        courses = [
+        {
+            "id":  str(course.id),
+            "title": course.title,
+            "code": course.courseCode,
+            "unit": course.unit,
+            "status": course.status,
+            "level": course.level.name,
+            "semester": course.semester.name,
+            "programmes": course.programme  # Convert each programme ID to string
+        }
+        for course in Course.objects.all().filter(department=instructor.department)
+        ]
+        # print('see courses', courses[0].title)
+        cObjects = Course.objects.all().filter(department=instructor.department)
+        course_levels = []
+        for x in cObjects:
+            course_levels.append(x.level.name)
+        course_levels.sort(key=str)
+        course_levels = list(set(course_levels))
+        print('course', course_levels)
+        programmes = Programme.objects.all()
+        # selected_programmes = courseObjects.programmes.all()
+        if request.method == "POST":
+            course_title = request.POST["course_title"].strip()
+            course_code = request.POST["course_code"].strip()
+            course_unit = request.POST["course_unit"].strip()
+            course_status = request.POST["course_status"].strip()
+            program = request.POST['programme']
+            level = request.POST["level"]
+            semester = request.POST["semester"]
+
+            if (
+                course_title == ""
+                and course_code == ""
+                and course_unit == ""
+                and course_status == ""
+            ):
+                messages.info(request, f"Fields cannot be empty")
+                return redirect("/instructor/courses")
+
+            if Course.objects.all().filter(courseCode=course_code).exists():
+                messages.info(request, "Course already exist!")
+                return redirect("/instructor/courses")
+
+            courseObjects = Course.objects.create(
+                title=course_title,
+                courseCode=course_code,
+                department=instructor.department,
+                unit=course_unit,
+                status=course_status,
+                level=get_object_or_404(Level, name=level),
+                semester=get_object_or_404(Semester, name=semester),
+                programme=get_object_or_404(Programme, id=program),
+            )
+
+            courseObjects.save()
+            # programmes_ids = request.POST.getlist('programmes')  # Assuming departments are selected in a form
+            
+            # programmes = Programme.objects.filter(pk__in=programmes_ids)
+            # Add all retrieved Programme instances to the courseObjects' programmes field
+            # courseObjects.programmes.add(*programmes)
+            messages.info(request, 'Course Added!')
+            return redirect('/instructor/courses')
+
+    return render(request, 'admin/course_management.html', {'courses': courses, 'courseLevels': course_levels, "programme": programmes, "department": instructor.department})
+
+@login_required
+@user_passes_test(is_instructor, login_url="/404")
+def updateCourse(request):
+    if request.user.is_authenticated:
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        if request.method == "POST":
+            course_id = request.POST["course_id"]
+            course_title = request.POST["course_title"].strip()
+            course_code = request.POST["course_code"].strip()
+            course_unit = request.POST["course_unit"].strip()
+            course_status = request.POST["course_status"].strip()
+            level = request.POST["level"]
+            semester = request.POST["semester"]
+            program = request.POST['programme']
+
+            if ( course_title != "" and course_code != "" and course_unit != "" and course_status != ""):
+                try:
+                    courseObjects = Course.objects.filter(
+                        department=instructor.department, id=course_id
+                    )[0]
+                    courseObjects.title = course_title
+                    courseObjects.courseCode = course_code
+                    courseObjects.unit = course_unit
+                    courseObjects.status = course_status
+                    courseObjects.level = get_object_or_404(Level, name=level)
+                    courseObjects.semester = get_object_or_404(Semester, name=semester)
+                    courseObjects.programme = get_object_or_404(Programme, id=program)
+                    courseObjects.save()
+                    # programmes_ids = request.POST.getlist('programmes')  # Assuming departments are selected in a form
+                    
+                    # programmes = Programme.objects.filter(pk__in=programmes_ids)
+
+                    # Add all retrieved Programme instances to the courseObjects' programmes field
+                    # courseObjects.programmes.set(programmes)
+                    messages.info(request, f'Course Updated')
+                    return redirect("/instructor/courses")
+                except:
+                    messages.info(request, f'Course not available')
+                    return redirect("/instructor/courses")
+            messages.info(request, f'Fields cannot be empty')
+            return redirect("/instructor/courses")
+        return redirect("/instructor/courses")
+
+
+@login_required
+@user_passes_test(is_instructor, login_url='/404')
+def deleteCourse(request, id):
+
+    # try:
+        courseObjects = Course.objects.filter(id=id)[0]
+        print("1", courseObjects.title)
+        if Course.objects.all().filter(id=id).exists():
+            messages.info(request, f'{courseObjects.title} deleted successfully')
+            course= Course.objects.filter(id=id).delete()
+            
+            return redirect("/instructor/courses")
+        messages.info(request, f'Course not available')
+        return redirect("/instructor/courses")
+    # except:
+    #     messages.info(request, f'Course not available')
+    #     return redirect("/instructor/courses")
+    
+
+@login_required
+@user_passes_test(is_instructor, login_url='/404')
+def eachCourse(request, id):
+    if request.user.is_authenticated:
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        session = Session.objects.all()
+        course = Course.objects.all().filter(department=instructor.department, id=id).first()
+        if request.method == 'POST':
+            sess = request.POST['session']
+            semes = request.POST['semester']
+            if sess != "" and semes != "":
+                sess = get_object_or_404(Session, year=sess)
+                semes = get_object_or_404(Semester, name=semes)
+                
+                register = Registration.objects.all().filter(session=sess, semester=semes, course=get_object_or_404(Course, id=id))
+                print('register', register)
+
+                return render(request, 'admin/each_course.html', {'course': course, "department": instructor.department, 'session': session, 'registered_student': register})
+            
+            messages.info(request, f'Information not available')
+            redirect(f"/instructor/courses/each/{id}/")
+    return render(request, 'admin/each_course.html', {'course': course, "department": instructor.department, 'session': session})
+
+@login_required
+@user_passes_test(is_instructor, login_url='/404')
+def registeredStudentSearchDashboard(request):
+    if request.user.is_authenticated:
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        session = Session.objects.all()
+        if request.method == "POST":
+            matricNo = request.POST["matricNo"]
+            sess = request.POST["session"]
+            semes = request.POST["semester"]
+
+            if sess != "" and semes != "" and matricNo != "":
+                sess = get_object_or_404(Session, year=sess)
+                semes = get_object_or_404(Semester, name=semes)
+            messages.info(request, f'Fields cannot be empty!')
+            redirect(f"instructor/student/search/")
+
+
+    return render(request, 'admin/student_management_search.html', {"department": instructor.department, 'session': session})
+
+
+@login_required
+@user_passes_test(is_instructor, login_url='/404')
+def registeredStuManagementDashboard(request):
+    if request.user.is_authenticated:
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        current_session = Session.objects.filter(is_current=True).first()
+        
+        if request.method == "POST":
+            matricNo = request.POST["matricNo"].strip()
+            if matricNo != "":
+                try:
+                    student = Student.objects.all().filter(Q(matricNumber=matricNo) | Q(jambNumber=matricNo), department=instructor.department)
+                    if student.exists():
+                        stu = student.first()
+                        registers = Registration.objects.all().filter(student=get_object_or_404(Student, matricNumber=stu.matricNumber))
+                        reg_levels = []
+                        for x in registers:
+                            reg_levels.append(x.level.name)
+                        course_levels.sort(key=int)
+                        course_levels = list(set(course_levels))
+                        
+                        return render(request, 'admin/student_dashboard.html', {"department": instructor.department, 'student': stu, 'registers': registers})
+                except:
+                    messages.info(request, f'Student not available')
+                    return redirect("/instructor/student/management/")
+            messages.info(request, f'Field cannot be empty!')
+            redirect(f"/instructor/student/management/")
+
+    return render(request, 'admin/student_dashboard.html', {"department": instructor.department, 'curr_sess': current_session})
+
+def F404(request):
+    
+    return render(request, "admin/404.html")
+
+
+@login_required
+@user_passes_test(is_instructor, login_url='/404')
+def registeredStudentManagementDashboard(request):
+    if request.user.is_authenticated:
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        current_session = Session.objects.filter(is_current=True).first()
+        current_semester = Semester.objects.filter(is_current=True).first()
+        if request.method == "POST":
+            matricNo = request.POST["matricNo"].strip()
+            if matricNo != "":
+                try:
+                    student = Student.objects.all().filter(Q(matricNumber=matricNo) | Q(jambNumber=matricNo), department=instructor.department).first()
+                    
+                    if student:
+                        
+                        enrollment = Enrollment.objects.filter(student=student).order_by('enrolled_date').first()
+                        
+                        if not enrollment:
+                            # Handle case where the student has no enrollment record
+                            messages.info(request, f'No enrollment found!')
+                            redirect(f"/instructor/student/management/")
+                            
+                        enrollment_year = int(enrollment.session.year.split('/')[0])
+                        
+                        # Query all registrations for the student and annotate each session with the calculated level
+                        registrations = Registration.objects.filter(student=student).select_related('session')
+                        # results = Result.objects.filter(student=student).select_related('registration__session')
+                        
+                        # Calculate level for each session
+                        sessions_and_levels = []
+                        for registration in registrations:
+                            res = Result.objects.filter(registration__id=registration.id).order_by('-attempt_number').first()
+                            print('regis', res)
+                            session_year = int(registration.session.year.split('/')[0])
+                            # Calculate the difference in years
+                            years_since_enrollment = session_year - enrollment_year
+                            # Calculate the level, assuming the student starts at Level 100 and progresses yearly
+                            current_level = 100 + (years_since_enrollment * 100)
+                            
+                            sessions_and_levels.append({
+                                'session': registration.session.year,
+                                'level': current_level,
+                                'registration': registration,  # Add any course details if necessary
+                                'result': res,
+                            })
+
+                        unique_sessions = sorted({entry['session'] for entry in sessions_and_levels})
+                        
+                        
+
+                        unique_levels = sorted({entry['level'] for entry in sessions_and_levels})
+
+                        courses = Course.objects.all()
+
+                        duration = 0
+                        if len(unique_levels) == len(unique_sessions):
+                            duration = len(unique_levels)
+                        
+
+                        context = {
+                            'student': student,
+                            'sessions_and_levels': sessions_and_levels,
+                        }
+
+                        
+                        return render(request, 'admin/student_dashboard.html', {"department": instructor.department, 'curr_sess': current_session, 'curr_semes': current_semester, 'student': student,
+                            'sessions_and_levels': sessions_and_levels, 'unique_sessions': unique_sessions, 'unique_levels': unique_levels, 'duration':duration, 'courses': courses, 'matricNo': matricNo})
+                except:
+                    messages.info(request, f'Student not available')
+                    return redirect(f"/instructor/student/management/")
+
+            messages.info(request, f'Field cannot be empty!')
+            redirect(f"/instructor/student/management/")
+    return render(request, 'admin/student_dashboard.html', {"department": instructor.department, 'curr_sess': current_session, 'curr_semes': current_semester})
+
+
+
+@login_required
+@user_passes_test(is_instructor, login_url='/404')
+def studentGradeUpdate(request):
+    if request.user.is_authenticated:
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        if request.method == "POST":
+            registrationIdInput = request.POST["registrationIdInput"].strip()
+            courseGrade = request.POST["course_grade"]
+
+            # register = Registration.objects.all().filter(id=registrationIdInput).first()
+
+            try:
+                latest_result = Result.objects.filter(registration__id=registrationIdInput).order_by('-attempt_number').first()
+
+                # Add a new result for the resit
+                resit_result = Result.objects.create(
+                    registration=get_object_or_404(Registration, id=registrationIdInput),
+                    attempt_number=latest_result.attempt_number + 1,
+                    grade=float(courseGrade),  # Example resit grade
+                )
+
+                # register.grade = courseGrade
+                # register.save()
+
+                messages.info(request, f'{latest_result.registration.course.title} grade updated!')
+                # requests.post('http://127.0.0.1:8000/target-endpoint/', data=data)
+                redirect(f"/instructor/student/management/")
+            except Exception as e:
+                messages.info(request, f'result not uploaded yet')
+                # requests.post('http://127.0.0.1:8000/target-endpoint/', data=data)
+                redirect(f"/instructor/student/management/")
+
+
+    return render(request, 'admin/student_dashboard.html')
+
+@login_required
+@user_passes_test(is_instructor, login_url='/404')
+def deleteStudentRegisteredCourse(request, id):
+
+    try:
+        regObjects = Registration.objects.filter(id=id)[0]
+        print("1", regObjects.course.title)
+        if Registration.objects.all().filter(id=id).exists():
+            messages.info(request, f'{regObjects.course.title} deleted successfully')
+            regObjects= Registration.objects.filter(id=id).delete()
+            
+            return redirect("/instructor/student/management/")
+        messages.info(request, f'Registered Course not available')
+        return redirect("/instructor/student/management/")
+    except:
+        messages.info(request, f'Registered Course not available')
+        return redirect("/instructor/student/management/")
+
+@login_required
+@user_passes_test(is_instructor, login_url='/404')
+def addCourseStudentRegisteredCourse(request, matricNo):
+    if request.user.is_authenticated:
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        try:
+            student = Student.objects.all().filter(Q(matricNumber=matricNo) | Q(jambNumber=matricNo), department=instructor.department).first()
+            if student:
+                courseId = request.GET['course']
+                curr_semester = request.GET['curr_semester']
+                
+                curr_session = request.GET['curr_session']
+                current_session_model = Session.objects.filter(is_current=True).first()
+                current_semester_model = Semester.objects.filter(is_current=True).first()
+                print('semester', curr_semester, current_semester_model , type(curr_semester), type(current_semester_model), curr_semester==current_semester_model)
+                print('session', curr_session, current_session_model , type(curr_session), type(current_session_model), curr_session==current_session_model)
+
+                if curr_session == current_session_model.year and curr_semester == current_semester_model.name:
+                    course = get_object_or_404(Course, id=courseId)
+
+                    if course.semester.name != current_semester_model.name:
+                        messages.info(request, f'Invalid course to enter')
+                        return redirect("/instructor/student/management/")
+                    
+                    if Registration.objects.all().filter(student=student, 
+                                                    course=get_object_or_404(Course, id=courseId), 
+                                                    session=get_object_or_404(Session, year=curr_session),
+                                                    semester=get_object_or_404(Semester, name=curr_semester)).exists():
+                        messages.info(request, f'Already registered')
+                        return redirect("/instructor/student/management/")
+
+                    course_exist = Registration.objects.create(
+                        student=student,
+                        course=get_object_or_404(Course, id=courseId),
+                        session=get_object_or_404(Session, year=curr_session),
+                        semester=get_object_or_404(Semester, name=curr_semester),
+                    )
+                    course_exist.save()
+                    messages.info(request, f'Course Updated')
+                    return redirect("/instructor/student/management/")
+                messages.info(request, f'Something went wrong!!')
+                return redirect("/instructor/student/management/")
+            messages.info(request, f'Student does not exist')
+            return redirect("/instructor/student/management/")
+        except:
+            messages.info(request, f'Something went wrong')
+            return redirect("/instructor/student/management/")
+            
+    
+
 
 def login_view(request):
     if request.method == "POST":
@@ -261,3 +1439,32 @@ def login_view(request):
 def logout(request):
     auth.logout(request)
     return redirect("/")
+
+
+def get_latest_failed_or_pending_courses(student):
+    # Step 1: Get the current semester and session
+    try:
+        current_semester = Semester.objects.get(is_current=True)
+        current_session = Session.objects.get(is_current=True)
+    except ObjectDoesNotExist as e:
+        raise ValueError("Ensure both the current semester and session are set.") from e
+
+    # Step 2: Filter all registrations for the student
+    registrations = Registration.objects.filter(student=student)
+
+    # Step 3: Annotate courses with the latest registration date
+    annotated_courses = registrations.annotate(latest_registration_date=Max('registration_date'))
+
+    # Step 4: Filter for courses with the latest registration date
+    latest_registrations = annotated_courses.filter(
+        registration_date=F('latest_registration_date')
+    )
+
+    # Step 5: Filter pending or failed courses that are not in the current semester or session
+    filtered_courses = latest_registrations.filter(
+        Q(grade_remark__in=['pending', 'failed']),
+    #     ~Q(semester=current_semester),
+    #     ~Q(session=current_session)
+    )
+
+    return filtered_courses

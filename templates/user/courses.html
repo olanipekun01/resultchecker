@@ -1,89 +1,40 @@
-{% load static %}
+{% extends 'base.html' %}
 {% load custom_tags %}
 {% load custom_filters %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Course Page</title>
-  <script src="https://cdn.tailwindcss.com"></script>
 
-  <style>
-    .badge-success {
-      background-color: #10b981; /* Tailwind's green-500 */
-      color: white;
-      padding: 0.25rem 0.5rem;
-      border-radius: 0.25rem;
-      font-size: 0.875rem;
-    }
-    .badge-success:hover {
-      background-color: #059669; /* Tailwind's green-600 */
-    }
-  </style>
-</head>
-<body class="min-h-screen bg-white">
-  <!-- Header -->
-  <header class="sticky top-0 z-50 w-full border-b bg-[#6A32A1] text-white">
-    <div class="container mx-auto flex h-16 items-center justify-between px-4">
-      <nav id="main-nav" class="flex space-x-4">
-        <a href="#" class="text-white hover:text-blue-300">Home</a>
-        <a href="#" class="text-white hover:text-blue-300">Courses</a>
-        <a href="#" class="text-white hover:text-blue-300">Contact</a>
-      </nav>
-      <div class="flex items-center space-x-4">
-        <button class="rounded-full p-2 hover:bg-blue-900">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </button>
-        <button class="rounded-full p-2 hover:bg-blue-900">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 01-6 0m6 0H9" />
-          </svg>
-        </button>
-        <button class="rounded-full p-2 hover:bg-blue-900">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.333 0 4 .667 4 4s-2.667 4-4 4-4-.667-4-4 .667-4 4-4zM2 12c0-5.333 1.333-8 4-8s4 2.667 4 8-1.333 8-4 8-4-2.667-4-8z" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  </header>
 
-  <!-- Main Content -->
-  <div class="flex">
-    <!-- Side Navigation -->
-    
-    <aside class="w-64 bg-gray-100 p-4">
-      <div class="">
-        <img src="{% static 'assets/achievers.png' %}" alt="" class="w-[160px]" />
-      </div> 
-      <ul class="space-y-4">
-        <li><a href="#" class="block p-2 rounded hover:bg-blue-200">Dashboard</a></li>
-        <li><a href="#" class="block p-2 rounded hover:bg-blue-200">Courses</a></li>
-        <li><a href="#" class="block p-2 rounded hover:bg-blue-200">Settings</a></li>
-      </ul>
-    </aside>
+{% load static %}
+
+{% block title %}Application - COET{% endblock %}
+
+{% block content %}
+
+  
 
     <!-- Main Section -->
     <main class="flex-1 p-6">
       <div class="space-y-6">
         <!-- Welcome Message -->
         <div class="bg-[#6A32A1] text-white p-6 rounded-lg">
-          <h1 class="text-2xl font-semibold">Welcome Peace Yemisi Ajiboye</h1>
+          <h1 class="text-2xl font-semibold">Welcome {{student.surname}} {{student.otherNames}}</h1>
           <p class="text-sm" id="current-date"></p>
         </div>
 
         <!-- Harmattan Semester -->
         <section class="space-y-4">
-          <h2 class="text-xl font-semibold mb-4">Harmattan Semester</h2>
+          <h2 class="text-xl font-semibold mb-4">
+            {% if semes.name == 'first' %}
+            Harmattan Semester
+            {% else %}
+            Rain Semester
+            {% endif %}
+          </h2>
           <div class="bg-[#6A32A1] text-white p-4 mb-4 flex flex-row justify-between">
             <h3 class="text-lg font-semibold">My Prescribed Courses</h3>
 
             <span id="totalUnits">0</span>
           </div>
-          <form class='flex flex-col gap-4' method='post' action='/coursemain'>
+          <form class='flex flex-col gap-4' method='post' action='/courses/'>
             {% csrf_token %}
             <p id="warning" style="color: red; display: none;">You have exceeded the maximum allowed units!</p>
             <table class="min-w-full border-collapse border border-gray-200">
@@ -105,13 +56,12 @@
                   {% if carryover %}
                     {% for co in carryover %}
                       <tr>
-                        <td class='tbodytrtd '><input type="checkbox" data-unit="3" name='courses' value="{{course.id}}" class="course-checkbox"/></td>
+                        <td class='tbodytrtd '><input type="hidden" name="courses" value="{{ co.course.id }}"/><input type="checkbox" checked disabled data-unit="3" name='courses' value="{{course.id}}" class="course-checkbox"/></td>
                         <td class="border border-gray-200 p-2">{{co.course.courseCode}}</td>
                         <td class="border border-gray-200 p-2">{{co.course.title}}</td>
                         <td class="border border-gray-200 p-2">{{co.course.unit}}</td>
                         <td class="border border-gray-200 p-2">{{semes}} Semester</td>
                         <td class="border border-gray-200 p-2">C</td>
-                        {% comment %} <td class="border border-gray-200 p-2"><button>add</button></td> {% endcomment %}
                       </tr>
                     {% endfor %}
                   {% endif %}
@@ -123,7 +73,6 @@
                   <td class="border border-gray-200 p-2">{{course.unit}}</td>
                   <td class="border border-gray-200 p-2">{{semes}} Semester</td>
                   <td class="border border-gray-200 p-2">{{course.status}}</td>
-                  {% comment %} <td class="border border-gray-200 p-2"><button>add</button></td> {% endcomment %}
                 </tr>
                 {% endfor %}
               </tbody>
@@ -134,35 +83,7 @@
         </form>
         </section>
 
-        <!-- Rain Semester -->
-        <section class="space-y-4">
-          <h2 class="text-xl font-semibold mb-4">Rain Semester</h2>
-          <div class="bg-[#6A32A1] text-white p-4 mb-4">
-            <h3 class="text-lg font-semibold">My Prescribed Courses</h3>
-          </div>
-          <table class="min-w-full border-collapse border border-gray-200">
-            <thead>
-              <tr>
-                <th class="border border-gray-200 p-2">Course Code</th>
-                <th class="border border-gray-200 p-2">Course Name</th>
-                <th class="border border-gray-200 p-2">Credit Units</th>
-                <th class="border border-gray-200 p-2">Semester</th>
-                <th class="border border-gray-200 p-2">Course Status</th>
-                <th class="border border-gray-200 p-2">Options</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="border border-gray-200 p-2">MTH102</td>
-                <td class="border border-gray-200 p-2">Calculus I</td>
-                <td class="border border-gray-200 p-2">4</td>
-                <td class="border border-gray-200 p-2">First Semester</td>
-                <td class="border border-gray-200 p-2">Required</td>
-                <td class="border border-gray-200 p-2"><button>add</button></td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
+       
       </div>
 
     
@@ -257,61 +178,8 @@
       {% endfor %}
     {% endif %}
     </main>
-  </div>
+    {% endblock %}
 
-  
-
-  <script>
-    // Display current date
-
-        document.addEventListener('DOMContentLoaded', function () {
-        const maxUnits = 24;  // Set the maximum allowable course units
-        let totalUnits = 0;
-
-        const courseCheckboxes = document.querySelectorAll('.course-checkbox');
-        const totalUnitsDisplay = document.getElementById('totalUnits');
-        const inputTotalUnits = document.getElementById('inputTotalUnits');
-        const warningMessage = document.getElementById('warning');
-
-        function updateUnits() {
-            totalUnits = 0;  // Reset the total units
-
-            // Loop through all checkboxes and sum the selected units
-            courseCheckboxes.forEach(checkbox => {
-                if (checkbox.checked) {
-                    const courseUnit = parseInt(checkbox.getAttribute('data-unit'));
-                    totalUnits += courseUnit;
-                }
-            });
-
-            totalUnitsDisplay.textContent = totalUnits;
-            inputTotalUnits.value = totalUnits;
-            
-            if (totalUnits > maxUnits) {
-                warningMessage.style.display = 'block';
-                disableUnselectedCheckboxes(true);
-            } else {
-                warningMessage.style.display = 'none';
-                disableUnselectedCheckboxes(false);
-            }
-        }
-
-        function disableUnselectedCheckboxes(disable) {
-            courseCheckboxes.forEach(checkbox => {
-                if (!checkbox.checked) {
-                    checkbox.disabled = disable;
-                }
-            });
-        }
-
-        courseCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', updateUnits);
-        });
-
-        updateUnits();
-    });
-    
-    document.getElementById("current-date").innerText = new Date().toDateString();
-  </script>
-</body>
-</html>
+    {% block extra_scripts %}
+        <script type="text/javascript" src="{% static 'js/courses.js' %}"></script>
+    {% endblock %}

@@ -201,61 +201,142 @@ class Instructor(models.Model):
 
     def __str__(self):
         return self.name
+    
+# class Registration(models.Model):
+#     GRADE_REMARK_CHOICES = (
+#         ('passed', 'passed'),
+#         ('failed', 'failed'),
+#         ('pending', 'pending'),
+#     )
+
+
+#     INSTRUCTOR_REMARK_CHOICES = (
+#         ('pending', 'pending'),
+#         ('approved', 'approved'),
+#         ('rejected', 'rejected')
+#     )
+
+#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+#     student = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, default=None)
+#     course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, default=None)
+#     session = models.ForeignKey(Session, on_delete=models.CASCADE, null=True, default=None)
+#     semester = models.ForeignKey(Semester, on_delete=models.CASCADE, null=True, default=None)
+#     registration_date = models.DateField(auto_now_add=True)
+#     passed = models.BooleanField(default=False)
+#     carried_over = models.BooleanField(default=False)
+#     grade = models.DecimalField(max_digits=10, decimal_places=2, null=True, default=0)
+#     grade_type = models.CharField(max_length=5, null=True, default='...')
+#     grade_remark = models.CharField(max_length=20, choices=GRADE_REMARK_CHOICES, null=True, default='pending')
+#     instructor_remark = models.CharField(max_length=20, choices=INSTRUCTOR_REMARK_CHOICES, null=True, default='pending')
+
+#     def __str__(self):
+#         return f"{self.student.surname} - {self.registration_date}"
+
+#     def save(self, *args, **kwargs):
+#         # Automatically update grade_type based on the grade
+#         if int(self.grade) is not None:
+#             if int(self.grade) >= 70:
+#                 self.grade_type = 'A'
+#             elif int(self.grade) >= 60:
+#                 self.grade_type = 'B'
+#             elif int(self.grade) >= 50:
+#                 self.grade_type = 'C'
+#             elif int(self.grade) >= 45:
+#                 self.grade_type = 'D'
+#             elif int(self.grade) >= 40:
+#                 self.grade_type = 'E'
+#             else:
+#                 self.grade_type = 'F'
+
+#             # Update grade_remark based on whether the grade is a pass or fail
+#             if int(self.grade) >= 40:  # Assuming 40 is the passing grade
+#                 self.grade_remark = 'passed'
+#             elif int(self.grade) <= 0:
+#                 self.grade_remark = 'pending'
+#             else:
+#                 self.grade_remark = 'failed'
+        
+#         # Call the original save method
+#         super().save(*args, **kwargs)
 
 class Registration(models.Model):
+    INSTRUCTOR_REMARK_CHOICES = (
+        ('pending', 'pending'),
+        ('approved', 'approved'),
+        ('rejected', 'rejected')
+    )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE,  null=True, default=None)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE,  null=True, default=None)
+    session = models.ForeignKey(Session, on_delete=models.CASCADE,  null=True, default=None)
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE,  null=True, default=None)
+    instructor_remark = models.CharField(max_length=20, choices=INSTRUCTOR_REMARK_CHOICES, null=True, default='pending')
+    registration_date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.student.surname} - {self.course} ({self.session}, {self.semester})"
+
+class Result(models.Model):
     GRADE_REMARK_CHOICES = (
         ('passed', 'passed'),
         ('failed', 'failed'),
         ('pending', 'pending'),
     )
 
-    INSTRUCTOR_REMARK_CHOICES = (
-        ('pending', 'pending'),
-        ('approved', 'approved'),
-        ('rejected', 'rejected')
-    )
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, default=None)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, default=None)
-    session = models.ForeignKey(Session, on_delete=models.CASCADE, null=True, default=None)
-    semester = models.ForeignKey(Semester, on_delete=models.CASCADE, null=True, default=None)
-    registration_date = models.DateField(auto_now_add=True)
+    registration = models.ForeignKey(Registration, on_delete=models.CASCADE, related_name='results')
+    attempt_number = models.PositiveIntegerField(default=1)  # Track the number of attempts (resits)
+    grade = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    grade_type = models.CharField(max_length=5, null=True, blank=True)
+    grade_point = models.DecimalField(max_digits=10, decimal_places=0, null=True, blank=True)
+    total_point = models.DecimalField(max_digits=10, decimal_places=0, null=True, blank=True)
+    grade_remark = models.CharField(max_length=20, choices=GRADE_REMARK_CHOICES, default='pending')
     passed = models.BooleanField(default=False)
     carried_over = models.BooleanField(default=False)
-    grade = models.DecimalField(max_digits=10, decimal_places=2, null=True, default=0)
-    grade_type = models.CharField(max_length=5, null=True, default='...')
-    grade_remark = models.CharField(max_length=20, choices=GRADE_REMARK_CHOICES, null=True, default='pending')
-    instructor_remark = models.CharField(max_length=20, choices=INSTRUCTOR_REMARK_CHOICES, null=True, default='pending')
+    result_date = models.DateField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('registration', 'attempt_number')  # Prevent duplicate attempts for the same registration
 
     def __str__(self):
-        return f"{self.student.surname} - {self.registration_date}"
+        return f"Result for {self.registration.student.surname} - {self.registration.course} (Attempt {self.attempt_number})"
 
     def save(self, *args, **kwargs):
         # Automatically update grade_type based on the grade
-        if int(self.grade) is not None:
-            if int(self.grade) >= 70:
+        if self.grade is not None:
+            if self.grade >= 70:
                 self.grade_type = 'A'
-            elif int(self.grade) >= 60:
+            elif self.grade >= 60:
                 self.grade_type = 'B'
-            elif int(self.grade) >= 50:
+            elif self.grade >= 50:
                 self.grade_type = 'C'
-            elif int(self.grade) >= 45:
+            elif self.grade >= 45:
                 self.grade_type = 'D'
-            elif int(self.grade) >= 40:
+            elif self.grade >= 40:
                 self.grade_type = 'E'
             else:
                 self.grade_type = 'F'
 
             # Update grade_remark based on whether the grade is a pass or fail
-            if int(self.grade) >= 40:  # Assuming 40 is the passing grade
-                self.grade_remark = 'passed'
-            elif int(self.grade) <= 0:
-                self.grade_remark = 'pending'
-            else:
-                self.grade_remark = 'failed'
+            self.grade_remark = 'passed' if self.grade >= 40 else 'failed'
         
-        # Call the original save method
+        if self.grade_type is not None:
+            if self.grade_type == 'A':
+                self.grade_point = 5
+            elif self.grade_type == 'B':
+                self.grade_point = 4
+            elif self.grade_type == 'C':
+                self.grade_point = 3
+            elif self.grade_type == 'D':
+                self.grade_point = 2
+            elif self.grade_type == 'E':
+                self.grade_point = 1
+            else:
+                self.grade_point = 0
+
+        if self.grade_type is not None and self.grade_point is not None:
+            self.total_point = self.grade_point * self.registration.course.unit
+
         super().save(*args, **kwargs)
 
         
@@ -267,6 +348,7 @@ class confirmRegister(models.Model):
     registration_date = models.DateField(auto_now_add=True)
     level = models.ForeignKey(Level, on_delete=models.CASCADE)
     totalUnits = models.CharField(max_length=100, blank=True, null=True)
+    gpa = models.CharField(max_length=100, blank=True, null=True)
 
 @receiver(post_save, sender=Student)
 def create_enrollment_for_student(sender, instance, created, **kwargs):
