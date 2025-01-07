@@ -277,7 +277,13 @@
                     <div class="features flex flex-row gap-8">
                         <div class="">
                             <img src="" alt="" class="">
-                            <button onclick="handleCreateModal()" class="">+ download</button>
+                            <form action="/instructor/download/course-csv/" method="post">
+                                {% csrf_token %}
+                                <input type="text" value="{{course_id}}" hidden name='course_id'>
+                                <input type="text" value="{{down_sess.year}}" hidden name='session_year'>
+                                <input type="text" value="{{down_semes.name}}" hidden name='semester_name'>
+                                <button class="">+ download</b4tton>
+                            </form>
                         </div>
 
                         <div class="">

@@ -14,6 +14,7 @@ app_name = "resultchecker"
 urlpatterns = [
     path('', views.Dashboard, name="dashboard"),
     path('courses/', views.Courses, name="course"),
+    path('course/delete/<str:id>', views.CourseDelete, name="course_delete"),
     path('result/filter/', views.ResultFilter, name="resultfilter"),
     path('result/view/', views.ResultView, name="resultview"),
 
@@ -29,11 +30,14 @@ urlpatterns = [
     path('instructor/courses/update/', views.updateCourse, name='instructor_course_update'),
     path('instructor/courses/delete/<str:id>/', views.deleteCourse, name='instructor_delete_course'),
     path('instructor/courses/each/<str:id>/', views.eachCourse, name='instructor_each_course'),
+    path('instructor/download/course-csv/', views.DownloadStudentCourse, name='instructor_course_student_download'),
 
     path('instructor/student/search/', views.registeredStudentSearchDashboard, name='instructor_student_search'),
     path('instructor/student/management/', views.registeredStudentManagementDashboard, name='instructor_student_management'),
     path('instructor/student/management/reg/delete/<str:id>/', views.deleteStudentRegisteredCourse, name='instructor_student_management_reg_delete'),
     path('instructor/student/management/reg/add/<str:matricNo>/', views.addCourseStudentRegisteredCourse, name='instructor_student_management_reg_add'),
+
+    path('instructor/student/reg/<str:stats>/<str:id>/', views.ApproveRejectReg, name='approve_reject_reg'),
     
     path('instructor/student/grade/', views.studentGradeUpdate, name='instructor_student_grade_update'),
 

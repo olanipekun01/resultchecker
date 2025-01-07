@@ -20,6 +20,10 @@
           <p class="text-sm" id="current-date"></p>
         </div>
 
+        {% for message in messages %}
+            <h5 style="color: red">{{message}}</h5>
+        {% endfor %}
+
         <!-- Harmattan Semester -->
         <section class="space-y-4">
           <h2 class="text-xl font-semibold mb-4">
@@ -91,7 +95,7 @@
     {% if duration %}
        {% for i in duration|custom_range %}
       <div class="bg-[#6A32A1] text-white p-4 mb-4">
-        <h3 class="text-lg font-semibold">{{ unique_sessions|get_item:i }} Academic Session Credit Units: 15</h3>
+        <h3 class="text-lg font-semibold">{{ unique_sessions|get_item:i }} Academic Session Credit Units: {15} </h3>
       </div>
       <div class="rounded-md border mt-4 bg-white shadow-sm">
         <div class="p-4 text-center">
@@ -124,8 +128,12 @@
                     <td class="border p-2 text-left">{{data.registration.course.unit}}</td>
                     <td class="border p-2 text-left">{{data.registration.course.semester.name}}</td>
                     <td class="border p-2 text-left">{{data.registration.course.status}}</td>
-                    <td class="border p-2 text-left">{{courseStatusLevel}}</td>
-                    <td class="border p-2 text-left">Options</td>
+                    <td class="border p-2 text-left">{{data.registration.instructor_remark}}</td>
+                    {% if data.registration.instructor_remark == 'rejected' %}
+                    <td class="border p-2 text-left"><a href="/course/delete/{{data.registration.id}}" class="text-red-700 underline">del</a></td>
+                    {% else %}
+                    <td class="border p-2 text-left"></td>
+                    {% endif %}
                   </tr>
                 {% endif %}
             {% endfor %}
@@ -164,8 +172,12 @@
                     <td class="border p-2 text-left">{{data.registration.course.unit}}</td>
                     <td class="border p-2 text-left">{{data.registration.course.semester.name}}</td>
                     <td class="border p-2 text-left">{{data.registration.course.status}}</td>
-                    <td class="border p-2 text-left">{{courseStatusLevel}}</td>
-                    <td class="border p-2 text-left">Options</td>
+                    <td class="border p-2 text-left">{{data.registration.instructor_remark}}</td>
+                    {% if data.registration.instructor_remark == 'rejected' %}
+                    <td class="border p-2 text-left"><a href="http://">del</a></td>
+                    {% else %}
+                    <td class="border p-2 text-left"></td>
+                    {% endif %}
                   </tr>
                 {% endif %}
               {% endfor %}

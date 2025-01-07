@@ -270,7 +270,7 @@ class Registration(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE,  null=True, default=None)
     session = models.ForeignKey(Session, on_delete=models.CASCADE,  null=True, default=None)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE,  null=True, default=None)
-    instructor_remark = models.CharField(max_length=20, choices=INSTRUCTOR_REMARK_CHOICES, null=True, default='pending')
+    instructor_remark = models.CharField(max_length=50, choices=INSTRUCTOR_REMARK_CHOICES, null=True, default='pending')
     registration_date = models.DateField(auto_now_add=True)
 
     def __str__(self):

@@ -12,6 +12,8 @@ import json
 from django.core.exceptions import ObjectDoesNotExist
 
 from django.db.models import Sum, Min
+import csv
+from django.http import HttpResponse
 
 import os
 
@@ -399,22 +401,7 @@ def Courses(request):
             # sess = request.POST["sess"]
             # semes = request.POST["semes"]
             totalUnit = request.POST["totalUnit"]
-            for id in courses:
-                
-                course = (get_object_or_404(Course, id=id),)
-                print("course name", course)
-                semester = current_semester_model
-                
-
-                course_exist = Registration.objects.create(
-                    student=student,
-                    course=get_object_or_404(Course, id=id),
-                    session=current_session_model,
-                    semester=current_semester_model,
-                )
-                course_exist.save()
-
-            # Filter registrations for the student, session, and semester
+             # Filter registrations for the student, session, and semester
             registrations = Registration.objects.filter(
                 student=student,
                 session=current_session_model,
@@ -425,27 +412,48 @@ def Courses(request):
             total_units = registrations.aggregate(total_units=Sum('course__unit'))['total_units']
 
             # Handle the case where no registrations exist
-            total_units = total_units or 0  # Default to 0 if no units are found
+            total_units = total_units or 0
 
-            print(f"Total units registered: {total_units}")
+            if total_units <= 24:
+                for id in courses:
+                    
+                    course = (get_object_or_404(Course, id=id),)
+                    print("course name", course)
+                    semester = current_semester_model
+                    
 
-            confirm_reg, created = confirmRegister.objects.get_or_create(
-                student=student,
-                session=current_session_model,
-                semester=current_semester_model,
-                level=get_object_or_404(Level, name=student.currentLevel),
-            )
+                    course_exist = Registration.objects.create(
+                        student=student,
+                        course=get_object_or_404(Course, id=id),
+                        session=current_session_model,
+                        semester=current_semester_model,
+                    )
+                    course_exist.save()
 
-            if not created:
-                # Update the total units and registration date if the instance already exists
-                confirm_reg.totalUnits = total_units
-                confirm_reg.registration_date = now().date()
-                confirm_reg.save()
-            else:
-                # If a new instance was created, set the totalUnits and save
-                confirm_reg.totalUnits = total_units
-                confirm_reg.save()
-            return redirect("/courses/")
+                # Default to 0 if no units are found
+
+                print(f"Total units registered: {total_units}")
+
+                confirm_reg, created = confirmRegister.objects.get_or_create(
+                    student=student,
+                    session=current_session_model,
+                    semester=current_semester_model,
+                    level=get_object_or_404(Level, name=student.currentLevel),
+                )
+
+                if not created:
+                    # Update the total units and registration date if the instance already exists
+                    confirm_reg.totalUnits = total_units
+                    confirm_reg.registration_date = now().date()
+                    confirm_reg.save()
+                else:
+                    # If a new instance was created, set the totalUnits and save
+                    confirm_reg.totalUnits = total_units
+                    confirm_reg.save()
+                messages.info(request, "Course added")
+                return redirect("/courses/")
+            messages.error(request, "Exceeded maximum units")
+            return redirect('/courses/')
         
         level = get_object_or_404(Level, name=student.currentLevel)
         current_session_model = Session.objects.filter(is_current=True).first()
@@ -453,13 +461,16 @@ def Courses(request):
         try:
             current_semester_model = Semester.objects.get(is_current=True)
         except ObjectDoesNotExist:
-            raise ValueError("No current semester is set. Please set one as current.")
+            # raise ValueError("No current semester is set. Please set one as current.")
+            messages.error(request, "No current semester is set. Please set one as current.")
+            return redirect('/courses/')
 
         # Get the current session
         try:
             current_session_model = Session.objects.get(is_current=True)
         except ObjectDoesNotExist:
-            raise ValueError("No current session is set. Please set one as current.")
+            messages.error(request, "No current semester is set. Please set one as current.")
+            return redirect('/courses/')
         
         courses = Course.objects.filter(
             level=level, 
@@ -483,7 +494,8 @@ def Courses(request):
         current_semester = Semester.objects.filter(is_current=True).first()
 
         if not current_session or not current_semester:
-            raise ValueError("Current session or semester is not set. Please set them as current.")
+            messages.error(request, "No current semester is set. Please set one as current.")
+            return redirect('/courses/')
 
         # registrations = Registration.objects.filter(student=student)
 
@@ -627,9 +639,13 @@ def Courses(request):
         course_levels = list(set(course_levels))
         # print('course_levels', course_levels)
 
+        confirmReg = confirmRegister.objects.filter(student=student)
+
         unique_sessions = sorted({entry['session'] for entry in sessions_and_levels})
         
         unique_levels = sorted({entry['level'] for entry in sessions_and_levels})
+
+        
 
         # courses = Course.objects.all()
 
@@ -651,11 +667,70 @@ def Courses(request):
                 'unique_sessions': unique_sessions, 
                 'unique_levels': unique_levels, 
                 'duration':duration,
+                'confirmReg': confirmReg,
             },
         )
 
     # return render(request, "user/courses.html", {"student": 'student'})
 
+@login_required
+@user_passes_test(is_student, login_url="/404")
+def CourseDelete(request, id):
+    if request.user.is_authenticated:
+        user = request.user
+        student = get_object_or_404(Student, user=user)
+
+        level = get_object_or_404(Level, name=student.currentLevel)
+        current_session_model = Session.objects.filter(is_current=True).first()
+        current_semester_model = Semester.objects.filter(is_current=True).first()
+
+        try:
+            reg = Registration.objects.filter(id=id).first()
+            if reg.session == current_session_model and reg.semester == current_semester_model and reg.instructor_remark == 'rejected':
+                messages.info(request, f'Deleted {reg.course.title}!!')
+                
+                reg.delete()
+
+                registrations = Registration.objects.filter(
+                    student=student,
+                    session=current_session_model,
+                    semester=current_semester_model
+                )
+
+                # Aggregate the total units by summing the 'unit' field of related courses
+                total_units = registrations.aggregate(total_units=Sum('course__unit'))['total_units']
+
+                # Handle the case where no registrations exist
+                total_units = total_units or 0  # Default to 0 if no units are found
+
+                print(f"Total units registered: {total_units}")
+                
+                confirm_reg, created = confirmRegister.objects.get_or_create(
+                    student=student,
+                    session=current_session_model,
+                    semester=current_semester_model,
+                    level=get_object_or_404(Level, name=student.currentLevel),
+                )
+
+                if not created:
+                    # Update the total units and registration date if the instance already exists
+                    confirm_reg.totalUnits = total_units
+                    confirm_reg.registration_date = now().date()
+                    confirm_reg.save()
+                else:
+                    # If a new instance was created, set the totalUnits and save
+                    confirm_reg.totalUnits = total_units
+                    confirm_reg.save()
+                
+                return redirect("/courses")
+            else:
+                messages.info(request, f'Request not allowed')
+                return redirect("/courses/")
+                 
+        except:
+            messages.info(request, f'Registered Course not available')
+            return redirect("/courses/")
+        
 @login_required
 @user_passes_test(is_student, login_url="/404")
 def ResultFilter(request):
@@ -1126,11 +1201,65 @@ def eachCourse(request, id):
                 register = Registration.objects.all().filter(session=sess, semester=semes, course=get_object_or_404(Course, id=id))
                 print('register', register)
 
-                return render(request, 'admin/each_course.html', {'course': course, "department": instructor.department, 'session': session, 'registered_student': register})
+                return render(request, 'admin/each_course.html', {'course': course, "department": instructor.department, 'session': session, 'registered_student': register,
+                                                                  'down_sess':sess, 'down_semes':semes, 'course_id':id})
             
             messages.info(request, f'Information not available')
             redirect(f"/instructor/courses/each/{id}/")
     return render(request, 'admin/each_course.html', {'course': course, "department": instructor.department, 'session': session})
+
+@login_required
+@user_passes_test(is_instructor, login_url='/404')
+def DownloadStudentCourse(request):
+    if request.user.is_authenticated:
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        
+        if request.method == 'POST':
+            id = request.POST['course_id']
+            sess = request.POST['session_year']
+            semes = request.POST['semester_name']
+
+            course = get_object_or_404(Course, id=id)
+            sess = get_object_or_404(Session, year=sess)
+            semes = get_object_or_404(Semester, name=semes)
+            registrations = Registration.objects.filter(course=course, session=sess, semester=semes)
+
+            # Create HTTP response with CSV content type
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = f'attachment; filename="course_registration_{course.id}_{sess.year}.csv"'
+
+            # Create CSV writer
+            writer = csv.writer(response)
+
+            # Write header row
+            writer.writerow(['Student id', 'Matric No', 'Student Name', 'Course id', 'Course Code', 'Course Title', 'Session', 'Semester', 'Level', 'Total Units', 'Grade'])
+
+
+            # Write data rows
+            for registration in registrations:
+                student = registration.student
+                course = registration.course
+                session = registration.session
+                semester = registration.semester
+                writer.writerow([
+                    student.user.id,
+                    student.matricNumber,
+                    f"{student.otherNames} {student.surname}",
+                    course.id,
+                    course.courseCode,
+                    course.title,
+                    session.year,
+                    semester.name,
+                    course.level.name,
+                    course.unit,
+                    ""  # Leave grade blank for result upload
+                ])
+
+            return response
+
+
+
 
 @login_required
 @user_passes_test(is_instructor, login_url='/404')
@@ -1307,16 +1436,23 @@ def studentGradeUpdate(request):
 @login_required
 @user_passes_test(is_instructor, login_url='/404')
 def deleteStudentRegisteredCourse(request, id):
-
+    if request.user.is_authenticated:
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        current_session_model = Session.objects.filter(is_current=True).first()
+        current_semester_model = Semester.objects.filter(is_current=True).first()
     try:
         regObjects = Registration.objects.filter(id=id)[0]
         print("1", regObjects.course.title)
-        if Registration.objects.all().filter(id=id).exists():
-            messages.info(request, f'{regObjects.course.title} deleted successfully')
-            regObjects= Registration.objects.filter(id=id).delete()
-            
+        if regObjects.session == current_session_model and regObjects.semester == current_semester_model and regObjects.instructor_remark != 'approved':
+            if Registration.objects.all().filter(id=id).exists():
+                messages.info(request, f'{regObjects.course.title} deleted successfully')
+                regObjects= Registration.objects.filter(id=id).delete()
+                
+                return redirect("/instructor/student/management/")
+            messages.info(request, f'Registered Course not available')
             return redirect("/instructor/student/management/")
-        messages.info(request, f'Registered Course not available')
+        messages.info(request, f'Cannot perform Opereation')
         return redirect("/instructor/student/management/")
     except:
         messages.info(request, f'Registered Course not available')
@@ -1371,8 +1507,35 @@ def addCourseStudentRegisteredCourse(request, matricNo):
             messages.info(request, f'Something went wrong')
             return redirect("/instructor/student/management/")
             
-    
 
+@login_required
+@user_passes_test(is_instructor, login_url='/404')
+def ApproveRejectReg(request, stats, id):
+    if request.user.is_authenticated:
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        current_session_model = Session.objects.filter(is_current=True).first()
+        current_semester_model = Semester.objects.filter(is_current=True).first()
+
+        try:
+            print(stats)
+            if stats == 'approved' or stats == 'rejected':
+                reg = Registration.objects.filter(id=id).first()
+                if reg.session == current_session_model and reg.semester == current_semester_model:
+                    reg.instructor_remark = stats
+                    reg.save()
+                    messages.info(request, f'Registered Course {stats}!!')
+                    return redirect("/instructor/student/management/")
+                else:
+                    messages.info(request, f'Request not allowed')
+                    return redirect("/instructor/student/management/")
+            else:
+                messages.info(request, f'Invalid request')
+                return redirect("/instructor/student/management/")      
+        except:
+            messages.info(request, f'Registered Course not available')
+            return redirect("/instructor/student/management/")
+    return render(request, 'admin/student_dashboard.html')
 
 def login_view(request):
     if request.method == "POST":
