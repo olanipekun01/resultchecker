@@ -8,12 +8,16 @@ let searchBtn = document.querySelector('.bx-search');
         
 
 
-    function handleResultModal(link, code) {
+
+
+
+    function handleEachResultModal(code) {
         document.querySelector(".upload_result").style.display = "block";
         document.querySelector(".background_wrapper").style.display = "block";
+        document.querySelector('.uploadTitle').value = code;
     }
 
-    function closeResultModal() {
+    function closeEachResultModal() {
         event.preventDefault();
         document.querySelector(".upload_result").style.display = "none";
         document.querySelector(".background_wrapper").style.display = "none";
