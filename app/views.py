@@ -1266,57 +1266,108 @@ def upload_csv(request):
         user = request.user
         instructor = get_object_or_404(Instructor, user=user)
 
-        if request.method == 'POST' and request.FILES.get('upload_csv_file'):
-            csv_file = request.FILES['upload_csv_file']
+        
+
+        if request.method == 'POST':
+           
+            course_id = request.POST['course_id']
+            if 'uploadCsvFile' not in request.FILES:
+                messages.error(request, 'No file uploaded. Please select a file and try again.')
+                return redirect(f'/instructor/courses/each/{course_id}/')
+            
+            csv_file = request.FILES['uploadCsvFile']
             session_year = request.POST['session_year']
             semester_name = request.POST['semester_name']
-            course_id = request.POST['course_id']
+            
 
             # Check if the uploaded file is a CSV
             if not csv_file.name.endswith('.csv'):
                 messages.error(request, 'Please upload a valid CSV file.')
                 return redirect(f'/instructor/courses/each/{course_id}/')
 
-            try:
+            # try:
                 # Decode the file and process it
-                decoded_file = csv_file.read().decode('utf-8').splitlines()
-                reader = csv.reader(decoded_file)
-                next(reader, None)  # Skip the header row, if it exists
+            decoded_file = csv_file.read().decode('utf-8').splitlines()
+            reader = csv.reader(decoded_file)
+            next(reader, None)  # Skip the header row, if it exists
 
-                for row in reader:
-                    try:
-                        registration_id = row[0]
-                        grade = row[1]
-                        grade_remark = row[2]
+            for row in reader:
 
-                        # Fetch the registration record
-                        registration = Registration.objects.get(id=registration_id)
+                print('row', row)
+                # try:
+                registration_id = row[0]
+                grade = row[1]
 
-                        # Create or update the result
-                        result, created = Result.objects.update_or_create(
-                            registration=registration,
-                            attempt_number=1,  # Set attempt number appropriately
-                            defaults={
-                                'grade': grade,
-                                'grade_remark': grade_remark,
-                            }
-                        )
+                try:
+                    # Convert string to UUID
+                    reg_uuid = uuid.UUID(registration_id)
+                    print(f"Converted UUID: {reg_uuid}")
+                except ValueError as e:
+                    print(f"Invalid UUID string: {e}")
 
-                    except Registration.DoesNotExist:
-                        messages.warning(request, f"Registration ID {registration_id} does not exist.")
-                    except IndexError:
-                        messages.error(request, f"Invalid row format: {row}")
-                    except Exception as e:
-                        messages.error(request, f"Error processing row {row}: {e}")
 
-                messages.success(request, "CSV file processed successfully.")
-                return redirect('upload_csv')
+                # Fetch the registration record
+                # registration = Registration.objects.get(id=reg_uuid)
+                registration = Registration.objects.filter(id=uuid.UUID(registration_id))
+                # registration = get_object_or_404(Registration, id=reg_uuid)
 
-            except Exception as e:
-                messages.error(request, f"Error reading file: {e}")
-                return redirect('instructor/courses/each/<str:id>')
 
-        return redirect(f'/instructor/courses/each/{course_id}/')
+                print('regis', registration)
+
+                # Create or update the result
+                result, created = Result.objects.update_or_create(
+                    registration=registration,
+                    attempt_number=1,  # Set attempt number appropriately
+                    grade= grade,
+                    
+                )
+
+                result, created = Result.objects.get_or_create(
+                    registration=registration,
+                    attempt_number=1,  # Set attempt number appropriately
+                    grade= grade,
+                )
+
+                if not created:
+                    # Update the total units and registration date if the instance already exists
+                    result.grade = grade
+                    result.save()
+                else:
+                    # If a new instance was created, set the totalUnits and save
+                    result.attempt_number=1,
+                    result.save()
+
+
+                latest_result = Result.objects.filter(registration__id=registrationIdInput).order_by('-attempt_number').first()
+
+                # Add a new result for the resit
+                resit_result = Result.objects.create(
+                    registration=get_object_or_404(Registration, id=registrationIdInput),
+                    attempt_number=latest_result.attempt_number + 1,
+                    grade=float(courseGrade),  # Example resit grade
+                )
+
+                # register.grade = courseGrade
+                # register.save()
+
+                messages.info(request, f'{latest_result.registration.course.title} grade updated!')
+
+                # except Registration.DoesNotExist:
+                #     messages.warning(request, f"Registration ID {registration_id} does not exist.")
+                # except IndexError:
+                #     messages.error(request, f"Invalid row format: {row}")
+                # except Exception as e:
+                #     messages.error(request, f"Error processing row {row}: {e}")
+
+            messages.success(request, "CSV file processed successfully.")
+            return redirect(f'/instructor/courses/each/{course_id}/')
+
+            # except Exception as e:
+            #     messages.error(request, f"Error reading file: {e}")
+            #     return redirect('instructor/courses/each/{course_id}/')
+            
+        
+        return redirect("/instructor/courses")
 
 
 @login_required

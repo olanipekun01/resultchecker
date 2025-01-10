@@ -274,7 +274,7 @@ class Registration(models.Model):
     registration_date = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.student.surname} - {self.course} ({self.session}, {self.semester})"
+        return f"{self.id} - {self.student.surname} - {self.course} ({self.session}, {self.semester})"
 
 class Result(models.Model):
     GRADE_REMARK_CHOICES = (

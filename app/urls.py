@@ -31,6 +31,7 @@ urlpatterns = [
     path('instructor/courses/delete/<str:id>/', views.deleteCourse, name='instructor_delete_course'),
     path('instructor/courses/each/<str:id>/', views.eachCourse, name='instructor_each_course'),
     path('instructor/download/course-csv/', views.DownloadStudentCourse, name='instructor_course_student_download'),
+    path('instructor/upload/course-csv/', views.upload_csv, name='upload_csv'),
 
     path('instructor/student/search/', views.registeredStudentSearchDashboard, name='instructor_student_search'),
     path('instructor/student/management/', views.registeredStudentManagementDashboard, name='instructor_student_management'),

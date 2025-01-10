@@ -295,6 +295,9 @@
                     
                 </div>
                 <div class='mt-1 border-[1px] border-[#000] px-[30px] py-[10px]'>
+                    {% for message in messages %}
+                        <h5 style="color: red">{{message}}</h5>
+                    {% endfor %}
                     <div class="">
                         <h4 class="text-[22px]">{{course.title}}</h4>
                         <h6 class="">>>> {{course.courseCode}}</h6>
@@ -389,7 +392,7 @@
 
 
     <div class="upload_result">
-        <form method="post" action="/instructor/upload/course-csv/">
+        <form method="post" action="/instructor/upload/course-csv/" enctype="multipart/form-data">
           {% csrf_token %}
 
           <h4 class="mb-8 text-[23px] ml-5 text-red-700">Upload result</h1>
@@ -403,7 +406,7 @@
             <input type="text" value="BCH201" class="uploadTitle" disabled>
           
 
-          <input class="" type="file" name="upload_csv_file" id="" required accept=".csv" />
+          <input class="" type="file" name="uploadCsvFile" id="" accept=".csv" >
   
           
           <button>submit</button>
