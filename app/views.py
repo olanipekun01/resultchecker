@@ -1233,7 +1233,7 @@ def DownloadStudentCourse(request):
             writer = csv.writer(response)
 
             # Write header row
-            writer.writerow(['Registration Id', 'Student Id', 'Matric No', 'Student Name', 'Course id', 'Course Code', 'Course Title', 'Session', 'Semester', 'Level', 'Total Units', 'Grade'])
+            writer.writerow(['Registration Id', 'Grade', 'Student Id', 'Matric No', 'Student Name', 'Course id', 'Course Code', 'Course Title', 'Session', 'Semester', 'Level', 'Total Units'])
 
 
             # Write data rows
@@ -1244,6 +1244,7 @@ def DownloadStudentCourse(request):
                 semester = registration.semester
                 writer.writerow([
                     registration.id,
+                    "",  # Leave grade blank for result upload
                     student.user.id,
                     student.matricNumber,
                     f"{student.otherNames} {student.surname}",
@@ -1254,7 +1255,7 @@ def DownloadStudentCourse(request):
                     semester.name,
                     course.level.name,
                     course.unit,
-                    ""  # Leave grade blank for result upload
+                    
                 ])
 
             return response
@@ -1278,96 +1279,75 @@ def upload_csv(request):
             csv_file = request.FILES['uploadCsvFile']
             session_year = request.POST['session_year']
             semester_name = request.POST['semester_name']
-            
 
+
+            current_session_model = Session.objects.filter(is_current=True).first()
+            current_semester_model = Semester.objects.filter(is_current=True).first()
+
+        
             # Check if the uploaded file is a CSV
             if not csv_file.name.endswith('.csv'):
                 messages.error(request, 'Please upload a valid CSV file.')
                 return redirect(f'/instructor/courses/each/{course_id}/')
 
-            # try:
-                # Decode the file and process it
-            decoded_file = csv_file.read().decode('utf-8').splitlines()
-            reader = csv.reader(decoded_file)
-            next(reader, None)  # Skip the header row, if it exists
-
-            for row in reader:
-
-                print('row', row)
-                # try:
-                registration_id = row[0]
-                grade = row[1]
-
+            if get_object_or_404(Session, year=session_year) == current_session_model and get_object_or_404(Semester, name=semester_name) == current_semester_model:
+                
                 try:
-                    # Convert string to UUID
-                    reg_uuid = uuid.UUID(registration_id)
-                    print(f"Converted UUID: {reg_uuid}")
-                except ValueError as e:
-                    print(f"Invalid UUID string: {e}")
+                    # Decode the file and process it
+                    decoded_file = csv_file.read().decode('utf-8').splitlines()
+                    reader = csv.reader(decoded_file)
+                    next(reader, None)  # Skip the header row, if it exists
 
+                    for row in reader:
 
-                # Fetch the registration record
-                # registration = Registration.objects.get(id=reg_uuid)
-                registration = Registration.objects.filter(id=uuid.UUID(registration_id))
-                # registration = get_object_or_404(Registration, id=reg_uuid)
+                        print('row', row)
+                        # try:
+                        registration_id = row[0]
+                        grade = row[1]
 
+                        try:
+                            # Convert string to UUID
+                            reg_uuid = uuid.UUID(registration_id)
+                            print(f"Converted UUID: {reg_uuid}")
+                        except ValueError as e:
+                            print(f"Invalid UUID string: {e}")
 
-                print('regis', registration)
+                        result = Result.objects.filter(registration__id=uuid.UUID(registration_id), attempt_number=1).first()
 
-                # Create or update the result
-                result, created = Result.objects.update_or_create(
-                    registration=registration,
-                    attempt_number=1,  # Set attempt number appropriately
-                    grade= grade,
-                    
-                )
+                        if result:
+                            # If it exists, update the grade
+                            result.grade = int(grade)  # Update the grade field
+                            result.save()  # Save the changes
+                            print("Existing result updated.")
+                        else:
+                            # If it doesn't exist, create a new result
+                            result = Result.objects.create(
+                                registration=registration,
+                                attempt_number=1,
+                                grade=grade
+                            )
+                            result.save()
+                            print("New result created.")
 
-                result, created = Result.objects.get_or_create(
-                    registration=registration,
-                    attempt_number=1,  # Set attempt number appropriately
-                    grade= grade,
-                )
+                    messages.success(request, "CSV file processed successfully.")
+                    return redirect(f'/instructor/courses/each/{course_id}/')
 
-                if not created:
-                    # Update the total units and registration date if the instance already exists
-                    result.grade = grade
-                    result.save()
-                else:
-                    # If a new instance was created, set the totalUnits and save
-                    result.attempt_number=1,
-                    result.save()
+                        
 
+                except Result.DoesNotExist:
+                    messages.warning(request, f"Registration ID {registration_id} does not exist.")
+                except IndexError:
+                    messages.error(request, f"Invalid row format: {row}")
+                except Exception as e:
+                    messages.error(request, f"Error processing row {row}: {e}")
 
-                latest_result = Result.objects.filter(registration__id=registrationIdInput).order_by('-attempt_number').first()
-
-                # Add a new result for the resit
-                resit_result = Result.objects.create(
-                    registration=get_object_or_404(Registration, id=registrationIdInput),
-                    attempt_number=latest_result.attempt_number + 1,
-                    grade=float(courseGrade),  # Example resit grade
-                )
-
-                # register.grade = courseGrade
-                # register.save()
-
-                messages.info(request, f'{latest_result.registration.course.title} grade updated!')
-
-                # except Registration.DoesNotExist:
-                #     messages.warning(request, f"Registration ID {registration_id} does not exist.")
-                # except IndexError:
-                #     messages.error(request, f"Invalid row format: {row}")
-                # except Exception as e:
-                #     messages.error(request, f"Error processing row {row}: {e}")
-
-            messages.success(request, "CSV file processed successfully.")
-            return redirect(f'/instructor/courses/each/{course_id}/')
-
-            # except Exception as e:
-            #     messages.error(request, f"Error reading file: {e}")
-            #     return redirect('instructor/courses/each/{course_id}/')
+                return redirect(f'/instructor/courses/each/{course_id}/')
+            else:
+                messages.info(request, f'Can only update current session and semester result!')
+                return redirect(f'/instructor/courses/each/{course_id}/')
             
-        
         return redirect("/instructor/courses")
+       
 
 
 @login_required
