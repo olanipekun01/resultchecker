@@ -1665,6 +1665,17 @@ def login_view(request):
 
     return render(request, "authentication/login.html")
 
+@login_required
+@user_passes_test(is_instructor, login_url='/404')
+def manageAddStudent(request):
+    if request.user.is_authenticated:
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        current_session_model = Session.objects.filter(is_current=True).first()
+        current_semester_model = Semester.objects.filter(is_current=True).first()
+
+        return render(request, "admin/add_student.html")
+
 # def login_view(request):
 #     if request.method == 'POST':
 #         try:

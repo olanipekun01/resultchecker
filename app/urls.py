@@ -38,6 +38,8 @@ urlpatterns = [
     path('instructor/student/management/reg/delete/<str:id>/', views.deleteStudentRegisteredCourse, name='instructor_student_management_reg_delete'),
     path('instructor/student/management/reg/add/<str:matricNo>/', views.addCourseStudentRegisteredCourse, name='instructor_student_management_reg_add'),
 
+    path('instructor/add_student/', views.manageAddStudent, name='manage_add_student'),
+
     path('instructor/student/reg/<str:stats>/<str:id>/', views.ApproveRejectReg, name='approve_reject_reg'),
     
     path('instructor/student/grade/', views.studentGradeUpdate, name='instructor_student_grade_update'),
