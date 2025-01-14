@@ -241,40 +241,27 @@
 
             <!-- Tabs -->
             <div class="mt-6">
-            <div class="flex border-b">
-                <button id="individualTab" class="px-4 py-2 text-purple-800 border-b-2 border-purple-800">Individual Entry</button>
-                <button id="bulkTab" class="px-4 py-2 text-gray-600">Bulk Upload</button>
-            </div>
-
-            <!-- Individual Entry -->
-            <div id="individualForm" class="mt-4">
-                <form id="individualStudentForm" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                    <label for="name" class="block text-sm font-medium">Full Name</label>
-                    <input id="name" type="text" class="block w-full border rounded-lg p-2" required>
-                    </div>
-                    <div>
-                    <label for="matricNo" class="block text-sm font-medium">Matric Number</label>
-                    <input id="matricNo" type="text" class="block w-full border rounded-lg p-2" required>
-                    </div>
-                    <!-- Add other input fields here -->
+                {% for message in messages %}
+                        <h5 style="color: red">{{message}}</h5>
+                {% endfor %}
+                <div class="flex border-b">
+                    <h3 id="bulkTab" class="px-4 py-2 text-gray-600">Bulk Upload</h3>
                 </div>
-                <button type="submit" class="mt-4 bg-purple-800 text-white px-4 py-2 rounded-lg">Save Student Information</button>
+
+                <!-- Individual Entry -->
+
+                <!-- Bulk Upload -->
+                <form method="POST" enctype="multipart/form-data"  action="/instructor/add_student/">
+                    {% csrf_token %}
+                    <div class="border-2 border-dashed rounded-lg p-6">
+                    <label for="fileUpload" class="cursor-pointer flex flex-col items-center justify-center gap-2">
+                        <span class="text-sm text-gray-500">Click to upload CSV file</span>
+                        <span class="text-xs text-gray-400">File should contain student details in CSV format.</span>
+                    </label>
+                    <input id="fileUpload" name="file" type="file" accept=".csv" class="">
+                    </div>
+                    <button id="bulkSubmit" class="mt-4 bg-purple-800 text-white px-4 py-2 rounded-lg">Upload Students</button>
                 </form>
-            </div>
-
-            <!-- Bulk Upload -->
-            <div id="bulkForm" class="mt-4 hidden">
-                <div class="border-2 border-dashed rounded-lg p-6">
-                <label for="fileUpload" class="cursor-pointer flex flex-col items-center justify-center gap-2">
-                    <span class="text-sm text-gray-500">Click to upload CSV file</span>
-                    <span class="text-xs text-gray-400">File should contain student details in CSV format.</span>
-                </label>
-                <input id="fileUpload" type="file" accept=".csv" class="hidden">
-                </div>
-                <button id="bulkSubmit" class="mt-4 bg-purple-800 text-white px-4 py-2 rounded-lg">Upload Students</button>
-            </div>
             </div>
         </div>
     </main>

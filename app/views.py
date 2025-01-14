@@ -14,8 +14,12 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum, Min
 import csv
 from django.http import HttpResponse
-
+from datetime import datetime
 import os
+
+import pandas as pd
+
+from django.db import transaction
 
 import fpdf
 from fpdf import FPDF, HTMLMixin
@@ -1674,7 +1678,92 @@ def manageAddStudent(request):
         current_session_model = Session.objects.filter(is_current=True).first()
         current_semester_model = Semester.objects.filter(is_current=True).first()
 
-        return render(request, "admin/add_student.html")
+        if request.method == 'POST':
+            file = request.FILES.get('file')
+            
+            if not file:
+                messages.error(request, "Please upload a file.")
+                return redirect('/instructor/add_student/')
+            
+            try:
+                # Load file into a DataFrame (supports CSV/Excel)
+                if file.name.endswith('.csv'):
+                    df = pd.read_csv(file)
+                elif file.name.endswith(('.xls', '.xlsx')):
+                    df = pd.read_excel(file)
+                else:
+                    messages.error(request, "Unsupported file format. Please upload a CSV or Excel file.")
+                    return redirect('/instructor/add_student/')
+
+                # Validate required columns
+                required_columns = ['surname', 'otherNames', 'currentLevel', 'entryLevel', 'matricNumber', 
+                                    'jambNumber', 'dateOfBirth', 'gender', 'studentPhoneNumber',
+                                    'college', 'department', 'programme', 'primaryEmail', 'studentEmail',
+                                    'modeOfEntry', 'degree', 'currentSession']
+                for column in required_columns:
+                    if column not in df.columns:
+                        messages.error(request, f"Missing required column: {column}")
+                        return redirect('/instructor/add_student/')
+
+                # Start a database transaction
+                with transaction.atomic():
+                    for _, row in df.iterrows():
+                        # Fetch related foreign key objects
+                        college = College.objects.get(name=row['college'])
+                        department = Department.objects.get(name=row['department'])
+                        programme = Programme.objects.get(name=row['programme'])
+                        session = Session.objects.get(year=row['currentSession'])
+
+                        print('date', row['dateOfBirth'], datetime.strptime(row['dateOfBirth'], "%m/%d/%Y").strftime("%Y-%m-%d"))
+
+                        # Create a CustomUser (assuming email is primary key)
+                        user, created = CustomUser.objects.get_or_create(
+                            email=row['primaryEmail'],
+                            defaults={
+                                'username': row['primaryEmail'],
+                                'first_name': row['otherNames'],
+                                'last_name': row['surname'],
+                                'user_type': 'student',
+                            }
+                        )
+
+                        user.set_password(row['surname'].lower())
+                        user.save()
+
+                        # Create or update a Student record
+                        student, created = Student.objects.update_or_create(
+                            user=user,
+                            defaults={
+                                'otherNames': row['otherNames'],
+                                'surname': row['surname'],
+                                'currentLevel': row['currentLevel'],
+                                'entryLevel': row['entryLevel'],
+                                'currentSession':  current_session_model.year,
+                                'matricNumber': row['matricNumber'],
+                                'jambNumber': row['jambNumber'],
+                                'dateOfBirth': datetime.strptime(row['dateOfBirth'], "%m/%d/%Y").strftime("%Y-%m-%d"),
+                                'gender': row['gender'],
+                                'studentPhoneNumber': row['studentPhoneNumber'],
+                                'college': college,
+                                'department': department,
+                                'programme': programme,
+                                'primaryEmail': row['primaryEmail'],
+                                'degree': row['degree'],
+                                'modeOfEntry': row['modeOfEntry'],
+                                'studentEmail': row['studentEmail'],
+                            }
+                        )
+
+                        
+                    
+                    messages.success(request, "Students added successfully.")
+                    return redirect('/instructor/add_student/')
+
+            except Exception as e:
+                messages.error(request, f"An error occurred: {str(e)}")
+                return redirect('/instructor/add_student/')
+
+        return render(request, 'admin/add_student.html')
 
 # def login_view(request):
 #     if request.method == 'POST':
