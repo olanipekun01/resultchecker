@@ -11,6 +11,8 @@ import string
 import json
 from django.core.exceptions import ObjectDoesNotExist
 
+from django.db.models import OuterRef, Subquery, Max
+
 from django.db.models import Sum, Min
 import csv
 from django.http import HttpResponse
@@ -775,6 +777,30 @@ def ResultFilter(request):
 
                 
 
+               
+
+               
+
+                # latest_attempt = Result.objects.filter(
+                #     registration__student=student, registration__session=session, registration__semester=semester
+                # ).values('registration_id').annotate(
+                #     highest_attempt=Max('attempt_number')
+                # )
+
+                latest_attempt = Result.objects.filter(
+                    registration_id=OuterRef('registration_id')
+                ).values('registration_id').annotate(
+                    highest_attempt=Max('attempt_number')
+                ).values('highest_attempt')
+
+                latest_results = Result.objects.filter(
+                    attempt_number=Subquery(latest_attempt),
+                    registration__student=student  # Ensure it is for the specific student
+                )
+
+                
+
+
                 # Use list comprehension to keep the latest result for each course
                 
                 # for registration in attempts:
@@ -810,7 +836,7 @@ def ResultFilter(request):
                     "status": "success",
                     "latest_attempt": latest_attempt,
                     "all_attempts": attempts,
-                    "results": attempts,
+                    "results": latest_results,
                     "total_credit_units": total_credit_units,
                     "total_points": total_points,
                     "gpa": round(gpa, 2),
@@ -926,6 +952,42 @@ def Contact(request):
             template = request.POST["template"]
 
         return render(request, "contact.html")
+
+
+@login_required
+@user_passes_test(is_student, login_url="/404")
+def changePassword(request):
+    if request.method == "POST":
+        old_password = request.POST["oldpassword"]
+        new_password = request.POST["newpassword"]
+        confirm_password = request.POST["newpassword"]
+
+        if new_password != confirm_password:
+            return render(
+                request, "user/changepassword.html", {"error": "Use same password"}
+            )
+        
+        if len(new_password) < 8:
+            return render(
+                request, "user/changepassword.html", {"error": "Password too short, > than 8 characters!"}
+            )
+
+        user = request.user
+
+        if user.check_password(old_password):
+            user.set_password(new_password)
+            user = auth.authenticate(username=user.username, password=new_password)
+            auth.login(request, user)
+            return render(
+                request,
+                "user/changepassword.html",
+                {"success": "Password Change Successful!"},
+            )
+        else:
+            error_message = "Incorrect old password."
+            return render(request, "user/changepassword.html", {"error": error_message})
+
+    return render(request, "user/changepassword.html")
 
 
 @login_required
