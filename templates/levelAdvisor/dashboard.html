@@ -337,21 +337,14 @@ can approve or reject then all so a approve all button
                           </tr>
                         </thead>
                         <tbody id="students-table">
-                          <tr class="hover:bg-gray-100 cursor-pointer">
-                            <td class="px-4 py-2">${student.name}</td>
-                            <td class="px-4 py-2">${student.matricNo}</td>
-                            <td class="px-4 py-2">${student.programme}</td>
-                            <td class="px-4 py-2">
-                              <span class="px-2 py-1 text-xs font-semibold bg-yellow-200 text-yellow-800 rounded">${student.status}</span>
-                            </td>
-                          </tr>
+                          
                           {% for pend in pendingReg %}
                             <tr class="hover:bg-gray-100 cursor-pointer">
-                              <td class="px-4 py-2">${pend.student.name}</td>
-                              <td class="px-4 py-2">${student.matricNo}</td>
-                              <td class="px-4 py-2">${student.programme}</td>
+                              <td class="px-4 py-2">{{pend.student.surname}} {{pend.student.otherNames}}</td>
+                              <td class="px-4 py-2">{{pend.student.matricNumber}}</td>
+                              <td class="px-4 py-2">{{pend.student.programme}}</td>
                               <td class="px-4 py-2">
-                                <span class="px-2 py-1 text-xs font-semibold bg-yellow-200 text-yellow-800 rounded">${student.status}</span>
+                                <span class="px-2 py-1 text-xs font-semibold bg-yellow-200 text-yellow-800 rounded">{{pend.instructor_remark }}</span>
                               </td>
                             </tr>
                           {% endfor %}
