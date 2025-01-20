@@ -344,6 +344,9 @@ def is_student(user):
 def is_instructor(user):
     return user.user_type == "instructor"
 
+def is_advisor(user):
+    return user.user_type == "leveladvisor"
+
 
 
 def generate_password(length=8):
@@ -1378,6 +1381,8 @@ def upload_csv(request):
                         except ValueError as e:
                             print(f"Invalid UUID string: {e}")
 
+                        registration = Registration.objects.filter(id=uuid.UUID(registration_id)).first()
+
                         result = Result.objects.filter(registration__id=uuid.UUID(registration_id), attempt_number=1).first()
 
                         if result:
@@ -1390,7 +1395,7 @@ def upload_csv(request):
                             result = Result.objects.create(
                                 registration=registration,
                                 attempt_number=1,
-                                grade=grade
+                                grade=int(grade)
                             )
                             result.save()
                             print("New result created.")
@@ -1542,8 +1547,8 @@ def registeredStudentManagementDashboard(request):
                         
                         return render(request, 'admin/student_dashboard.html', {"department": instructor.department, 'curr_sess': current_session, 'curr_semes': current_semester, 'student': student,
                             'sessions_and_levels': sessions_and_levels, 'unique_sessions': unique_sessions, 'unique_levels': unique_levels, 'duration':duration, 'courses': courses, 'matricNo': matricNo})
-                except:
-                    messages.info(request, f'Student not available')
+                except Exception as e:
+                    messages.info(request, f'Student not available {e}')
                     return redirect(f"/instructor/student/management/")
 
             messages.info(request, f'Field cannot be empty!')
@@ -1771,6 +1776,7 @@ def manageAddStudent(request):
                 with transaction.atomic():
                     for _, row in df.iterrows():
                         # Fetch related foreign key objects
+                        print('row', row)
                         college = College.objects.get(name=row['college'])
                         department = Department.objects.get(name=row['department'])
                         programme = Programme.objects.get(name=row['programme'])
@@ -1826,6 +1832,28 @@ def manageAddStudent(request):
                 return redirect('/instructor/add_student/')
 
         return render(request, 'admin/add_student.html')
+
+@login_required
+@user_passes_test(is_advisor, login_url='/404')
+def AdvisorDashboard(request):
+    if request.user.is_authenticated:
+        user = request.user
+        advisor = get_object_or_404(LevelAdvisor, user=user)
+        current_session_model = Session.objects.filter(is_current=True).first()
+        current_semester_model = Semester.objects.filter(is_current=True).first()
+
+        total_students = len(Student.objects.filter(currentLevel=advisor.level))
+        pending_reg = Registration.objects.filter(course__department=advisor.department, session=current_session_model,
+         semester=current_semester_model, instructor_remark='pending')
+        rejected_reg = Registration.objects.filter(course__department=advisor.department, session=current_session_model,
+         semester=current_semester_model, instructor_remark='rejected')
+
+        
+
+        return render(request, "levelAdvisor/dashboard.html", {'totalStudents': total_students,
+                                                                'totalPendingReg': len(pending_reg),
+                                                                'totalRejectedReg': len(rejected_reg)})
+
 
 # def login_view(request):
 #     if request.method == 'POST':

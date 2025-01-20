@@ -13,11 +13,12 @@ class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = (
         ('student', 'Student'),
         ('instructor', 'Instructor'),
+        ('leveladvisor', 'LevelAdvisor')
     )
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # date_joined = models.DateTimeField(auto_now_add=True)
-    user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES)
+    user_type = models.CharField(max_length=15, choices=USER_TYPE_CHOICES)
 
     # groups = models.ManyToManyField(
     #     'auth.Group',
@@ -98,6 +99,11 @@ class Programme(models.Model):
 
 
 class Student(models.Model):
+    STUDENTSTATUS_CHOICES = (
+        ('inprogress', 'inprogress'),
+        ('failed', 'failed'),
+        ('graduated', 'graduated'),
+    )
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, primary_key=True)
     otherNames = models.CharField(blank=True, null=True, max_length=80)
     surname = models.CharField(blank=True, null=True, max_length=80)
@@ -110,7 +116,6 @@ class Student(models.Model):
     college = models.ForeignKey(College, on_delete=models.CASCADE,  null=True, default=None)
     department = models.ForeignKey(Department, on_delete=models.CASCADE,  null=True, default=None)
     programme = models.ForeignKey(Programme, on_delete=models.CASCADE, related_name='students', blank=True, null=True)
-    previous_programme = models.ForeignKey(Programme, on_delete=models.SET_NULL, null=True, blank=True, related_name='students_with_previous_programme')
     entrySession = models.ManyToManyField(Session, through='Enrollment', related_name='entrySession', null=True, default=None)
     currentSession = models.CharField(blank=True, null=True, max_length=20)
     primaryEmail = models.CharField(blank=True, null=True, max_length=120)
@@ -120,12 +125,11 @@ class Student(models.Model):
     modeOfEntry = models.CharField(blank=True, null=True, max_length=50)
     entryLevel = models.CharField(blank=True, null=True, max_length=50)
     degree = models.CharField(blank=True, null=True, max_length=50)
-    # bloodgroup, genotype, jambreg,email, 
-    # maritalStatus = models.CharField(blank=True, null=True, max_length=30)
     nationality = models.CharField(blank=True, null=True, max_length=110)
     stateOfOrigin = models.CharField(blank=True, null=True, max_length=110)
     localGovtArea = models.CharField(blank=True, null=True, max_length=110)
     passport = models.ImageField(upload_to="images/", null=True, blank=True)
+    student_status =  models.CharField(blank=True, choices=STUDENTSTATUS_CHOICES, default='inprogress', null=True, max_length=100)
 
     
     # passport = models.ImageField(upload_to="images/")
@@ -177,12 +181,18 @@ class Course(models.Model):
         ('elective', 'E'),
         ('recommendation', 'R'),
     )
+    CATEGORY_CHOICES = (
+        ('nursing course', 'NC'),
+        ('life science', 'LS'),
+        ('non nursing course', 'NNC'),
+    )
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(blank=True, null=True, max_length=500)
     courseCode = models.CharField(blank=True, null=True, max_length=15)
     # courseDescription = models.CharField(blank=True, null=True, max_length=250)
     unit = models.IntegerField(blank=True, null=True)
     status = models.CharField(blank=True, choices=COURSE_CHOICES, default='C', null=True, max_length=40)
+    category = models.CharField(blank=True, choices=CATEGORY_CHOICES, default='NNC', null=True, max_length=40)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     programme = models.ForeignKey(Programme, on_delete=models.CASCADE, related_name='courses', null=True, blank=True, default="")
     level = models.ForeignKey(Level, on_delete=models.CASCADE)
@@ -201,63 +211,18 @@ class Instructor(models.Model):
 
     def __str__(self):
         return self.name
+
+class LevelAdvisor(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, primary_key=True)
+    name = models.CharField(blank=True, null=True, max_length=500)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    level = models.ForeignKey(Level, on_delete=models.CASCADE)
+    passport = models.ImageField(upload_to="images/", null=True, blank=True)
+
+    def __str__(self):
+        return f'Level Advisor - {self.level.name} -{self.name}'
     
-# class Registration(models.Model):
-#     GRADE_REMARK_CHOICES = (
-#         ('passed', 'passed'),
-#         ('failed', 'failed'),
-#         ('pending', 'pending'),
-#     )
 
-
-#     INSTRUCTOR_REMARK_CHOICES = (
-#         ('pending', 'pending'),
-#         ('approved', 'approved'),
-#         ('rejected', 'rejected')
-#     )
-
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     student = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, default=None)
-#     course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, default=None)
-#     session = models.ForeignKey(Session, on_delete=models.CASCADE, null=True, default=None)
-#     semester = models.ForeignKey(Semester, on_delete=models.CASCADE, null=True, default=None)
-#     registration_date = models.DateField(auto_now_add=True)
-#     passed = models.BooleanField(default=False)
-#     carried_over = models.BooleanField(default=False)
-#     grade = models.DecimalField(max_digits=10, decimal_places=2, null=True, default=0)
-#     grade_type = models.CharField(max_length=5, null=True, default='...')
-#     grade_remark = models.CharField(max_length=20, choices=GRADE_REMARK_CHOICES, null=True, default='pending')
-#     instructor_remark = models.CharField(max_length=20, choices=INSTRUCTOR_REMARK_CHOICES, null=True, default='pending')
-
-#     def __str__(self):
-#         return f"{self.student.surname} - {self.registration_date}"
-
-#     def save(self, *args, **kwargs):
-#         # Automatically update grade_type based on the grade
-#         if int(self.grade) is not None:
-#             if int(self.grade) >= 70:
-#                 self.grade_type = 'A'
-#             elif int(self.grade) >= 60:
-#                 self.grade_type = 'B'
-#             elif int(self.grade) >= 50:
-#                 self.grade_type = 'C'
-#             elif int(self.grade) >= 45:
-#                 self.grade_type = 'D'
-#             elif int(self.grade) >= 40:
-#                 self.grade_type = 'E'
-#             else:
-#                 self.grade_type = 'F'
-
-#             # Update grade_remark based on whether the grade is a pass or fail
-#             if int(self.grade) >= 40:  # Assuming 40 is the passing grade
-#                 self.grade_remark = 'passed'
-#             elif int(self.grade) <= 0:
-#                 self.grade_remark = 'pending'
-#             else:
-#                 self.grade_remark = 'failed'
-        
-#         # Call the original save method
-#         super().save(*args, **kwargs)
 
 class Registration(models.Model):
     INSTRUCTOR_REMARK_CHOICES = (
@@ -304,32 +269,40 @@ class Result(models.Model):
     def save(self, *args, **kwargs):
         # Automatically update grade_type based on the grade
         if self.grade is not None:
-            if self.grade >= 70:
-                self.grade_type = 'A'
-            elif self.grade >= 60:
-                self.grade_type = 'B'
-            elif self.grade >= 50:
-                self.grade_type = 'C'
-            elif self.grade >= 45:
-                self.grade_type = 'D'
-            elif self.grade >= 40:
-                self.grade_type = 'E'
+            if self.registration.course.category == 'NC' or self.registration.course.category == 'LS':
+                if self.grade >= 70:
+                    self.grade_type = 'A'
+                elif self.grade >= 60:
+                    self.grade_type = 'B'
+                elif self.grade >= 50:
+                    self.grade_type = 'C'
+                else:
+                    self.grade_type = 'F'
             else:
-                self.grade_type = 'F'
+                if self.grade >= 70:
+                    self.grade_type = 'A'
+                elif self.grade >= 60:
+                    self.grade_type = 'B'
+                elif self.grade >= 50:
+                    self.grade_type = 'C'
+                elif self.grade >= 45:
+                    self.grade_type = 'D'
+                else:
+                    self.grade_type = 'F'
 
             # Update grade_remark based on whether the grade is a pass or fail
-            self.grade_remark = 'passed' if self.grade >= 40 else 'failed'
-        
-        if self.grade_type is not None:
+            if self.registration.course.category == 'NC' or self.registration.course.category == 'LS':
+                self.grade_remark = 'passed' if self.grade >= 50 else 'failed'
+            else:
+                self.grade_remark = 'passed' if self.grade >= 45 else 'failed'
+
             if self.grade_type == 'A':
-                self.grade_point = 5
-            elif self.grade_type == 'B':
                 self.grade_point = 4
-            elif self.grade_type == 'C':
+            elif self.grade_type == 'B':
                 self.grade_point = 3
-            elif self.grade_type == 'D':
+            elif self.grade_type == 'C':
                 self.grade_point = 2
-            elif self.grade_type == 'E':
+            elif self.grade_type == 'D':
                 self.grade_point = 1
             else:
                 self.grade_point = 0
