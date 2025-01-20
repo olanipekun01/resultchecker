@@ -1852,6 +1852,7 @@ def AdvisorDashboard(request):
 
         return render(request, "levelAdvisor/dashboard.html", {'totalStudents': total_students,
                                                                 'totalPendingReg': len(pending_reg),
+                                                                'pendingReg': pending_reg,
                                                                 'totalRejectedReg': len(rejected_reg)})
 
 
