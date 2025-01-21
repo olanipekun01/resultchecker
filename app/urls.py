@@ -46,6 +46,7 @@ urlpatterns = [
 
 
     path('advisor/dashboard/', views.AdvisorDashboard, name='advisor_dashboard'),
+    path('advisor/reg/', views.AdvisorReg, name='advisor_reg_matric'),
 
     path('success/', TemplateView.as_view(template_name='success.html'), name='success_page'),
     path('accounts/login/', views.login_view, name="login_view"),

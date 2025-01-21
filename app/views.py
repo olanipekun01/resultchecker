@@ -1833,6 +1833,7 @@ def manageAddStudent(request):
 
         return render(request, 'admin/add_student.html')
 
+
 @login_required
 @user_passes_test(is_advisor, login_url='/404')
 def AdvisorDashboard(request):
@@ -1843,18 +1844,75 @@ def AdvisorDashboard(request):
         current_semester_model = Semester.objects.filter(is_current=True).first()
 
         total_students = len(Student.objects.filter(currentLevel=advisor.level))
-        pending_reg = Registration.objects.filter(course__department=advisor.department, session=current_session_model,
+        pending_reg = Registration.objects.filter(student__department=advisor.department, session=current_session_model,
          semester=current_semester_model, instructor_remark='pending')
-        rejected_reg = Registration.objects.filter(course__department=advisor.department, session=current_session_model,
+        rejected_reg = Registration.objects.filter(student__department=advisor.department, session=current_session_model,
          semester=current_semester_model, instructor_remark='rejected')
 
-        
+        # pending_students = Registration.objects.filter(
+        #     course__department=advisor.department,
+        #     session=current_session_model,
+        #     semester=current_semester_model,
+        #     instructor_remark='pending'
+        # ).values('student').distinct()
+
+        # # If you want actual Student objects:
+        # unique_pending_students = Student.objects.filter(
+        #     id__in=[entry['student'] for entry in pending_students]
+        # )
+
+        pending_students = Student.objects.filter(
+            registration__course__department=advisor.department,
+            registration__session=current_session_model,
+            registration__semester=current_semester_model,
+            registration__instructor_remark='pending'
+        ).distinct()
 
         return render(request, "levelAdvisor/dashboard.html", {'totalStudents': total_students,
                                                                 'totalPendingReg': len(pending_reg),
-                                                                'pendingReg': pending_reg,
+                                                                'pendingReg': pending_students,
                                                                 'totalRejectedReg': len(rejected_reg)})
 
+@login_required
+@user_passes_test(is_advisor, login_url='/404')
+def AdvisorReg(request):
+    if request.user.is_authenticated:
+        user = request.user
+        advisor = get_object_or_404(LevelAdvisor, user=user)
+        current_session_model = Session.objects.filter(is_current=True).first()
+        current_semester_model = Semester.objects.filter(is_current=True).first()
+
+        matricNo = request.GET.get('q')
+    
+        if matricNo != "":
+            try:
+                student = Student.objects.all().filter(Q(matricNumber=matricNo) | Q(jambNumber=matricNo), department=advisor.department).first()
+                
+                if student:
+                    
+                    enrollment = Enrollment.objects.filter(student=student).order_by('enrolled_date').first()
+                    
+                    if not enrollment:
+                        # Handle case where the student has no enrollment record
+                        messages.info(request, f'No enrollment found!')
+                        redirect(f"/advisor/reg/")
+                        
+                    enrollment_year = int(enrollment.session.year.split('/')[0])
+                    
+                   
+                    registrations = Registration.objects.filter(student__department=advisor.department, student=student, semester=current_semester_model, session=current_session_model)
+                    
+                   
+                    
+                    return render(request, 'advisor/studentManagement.html', {"department": advisor.department, 'curr_sess': current_session_model, 'curr_semes': current_semester_model, 'student': student,
+                            'matricNo': matricNo, 'registrations': registrations})
+            except Exception as e:
+                messages.info(request, f'Student not available {e}')
+                return redirect(f"/advisor/reg/")
+
+        messages.info(request, f'Field cannot be empty!')
+        redirect(f"/advisor/reg/")
+    return render(request, 'advisor/studentManagement.html', {"department": advisor.department, 'curr_sess': current_session_model, 'curr_semes': current_semester_model})
 
 # def login_view(request):
 #     if request.method == 'POST':

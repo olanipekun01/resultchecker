@@ -342,11 +342,13 @@
                                         <input type="hidden" name="semes" value="{{ semes }}">
                                     
                                        {% for reg in registered_student %}
+                                       <a href="#">
                                         <tr class='tbodytr'>
                                             <td class='tbodytrtd'>{{reg.student.matricNumber}}</td>
                                             <td class='tbodytrtd'>{{reg.student.surname}}, {{reg.student.otherNames}}</td>
                                             <td class='tbodytrtd'>Registered</td>
                                         </tr>
+                                        </a>
                                        {% endfor %}
 
                                         

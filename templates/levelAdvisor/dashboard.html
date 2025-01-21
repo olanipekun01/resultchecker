@@ -323,9 +323,9 @@ can approve or reject then all so a approve all button
                     <div class="bg-white shadow rounded-lg p-4">
                       <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-bold">Students Pending Approval</h3>
-                        <button id="approve-all-btn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                        {% comment %} <button id="approve-all-btn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
                           Approve All
-                        </button>
+                        </button> {% endcomment %}
                       </div>
                       <table class="table-auto w-full text-left">
                         <thead class="bg-gray-100">
@@ -339,14 +339,18 @@ can approve or reject then all so a approve all button
                         <tbody id="students-table">
                           
                           {% for pend in pendingReg %}
+                          
                             <tr class="hover:bg-gray-100 cursor-pointer">
-                              <td class="px-4 py-2">{{pend.student.surname}} {{pend.student.otherNames}}</td>
-                              <td class="px-4 py-2">{{pend.student.matricNumber}}</td>
-                              <td class="px-4 py-2">{{pend.student.programme}}</td>
+                            
+                              <td class="px-4 py-2"><a href="/advisor/reg/?q={{pend.matricNumber}}">{{pend.surname}} {{pend.otherNames}}</a></td>
+                              <td class="px-4 py-2">{{pend.matricNumber}}</td>
+                              <td class="px-4 py-2">{{pend.programme}}</td>
                               <td class="px-4 py-2">
-                                <span class="px-2 py-1 text-xs font-semibold bg-yellow-200 text-yellow-800 rounded">{{pend.instructor_remark }}</span>
+                                <span class="px-2 py-1 text-xs font-semibold bg-yellow-200 text-yellow-800 rounded"><a href="/advisor/reg/?q={{pend.matricNumber}}">view</a></span>
                               </td>
+                            
                             </tr>
+                          
                           {% endfor %}
                         </tbody>
                       </table>
