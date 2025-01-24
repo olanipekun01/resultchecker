@@ -47,6 +47,10 @@ urlpatterns = [
 
     path('advisor/dashboard/', views.AdvisorDashboard, name='advisor_dashboard'),
     path('advisor/reg/', views.AdvisorReg, name='advisor_reg_matric'),
+    path('advisor/students/', views.StudentList, name='advisor_student'),
+    path('advisor/student/management/reg/delete/<str:id>/<str:matricNo>/', views.AdvisorDeleteStudentRegisteredCourse, name='advisor_student_management_reg_delete'),
+    path('advisor/student/management/reg/add/<str:matricNo>/', views.AdvisorAddCourseStudentRegisteredCourse, name='advisor_student_management_reg_add'),
+    path('advisor/student/reg/<str:stats>/<str:id>/<str:matricNo>/', views.AdvisorApproveRejectReg, name='advisor_approve_reject_reg'),
 
     path('success/', TemplateView.as_view(template_name='success.html'), name='success_page'),
     path('accounts/login/', views.login_view, name="login_view"),

@@ -177,9 +177,9 @@ class Semester(models.Model):
 
 class Course(models.Model):
     COURSE_CHOICES = (
-        ('compulsory', 'C'),
-        ('elective', 'E'),
-        ('recommendation', 'R'),
+        ('C', 'C'),
+        ('E', 'E'),
+        ('R', 'R'),
     )
     CATEGORY_CHOICES = (
         ('nursing course', 'NC'),

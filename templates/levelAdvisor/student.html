@@ -221,7 +221,7 @@
 </head>
 <body>
     <header class="relative flex justify-between item-center bg-gradient-to-r px-[20px] lg:px-[70px] py-6 from-[#077105] via-[#077105] to-[#049d04]">
-        <a href="./index.html" class="flex -gap-1 items-center -ml-2 lg:-ml-5">
+        <a href="/advisor/dashboard/" class="flex -gap-1 items-center -ml-2 lg:-ml-5">
             <img src="{% static '/assets/achieverslogo.png' %}" class="w-[40px] lg:w-20 " alt="">
             <div class="text-[#fff]">
                 <h1 class="text-xl lg:text-3xl text-red font-bold ">ACHIEVERS UNIVERSITY</h1>
@@ -296,224 +296,49 @@
 
                     
                 </div>
-                <div class='mt-1 border-[1px] border-[#000] px-[30px] py-[10px]'>
+                
+                <div class="bg-white shadow rounded-lg p-6">
                     {% for message in messages %}
                         <h5 style="color: red">{{message}}</h5>
                     {% endfor %}
-
-                    {% if student %}
-                    <div class="flex flex-row gap-10">
-                        
-                        <table class='w-[85%] mt-[10px]  mt-1 '>
-                            <tbody class="font-bold flex flex-col gap-2">
-                                    <td class="text-[15px] text-red-700 w-[250px]">FULL NAME:</td>
-                                    <td class="text-[15px]">{{student.surname}} {{student.otherNames}}</td>
-                                </tr>
-
-                                <tr class="flex flex-row  mb-3">
-                                    <td class="text-[15px] text-red-700 w-[250px]">MATRIC NO / JAMB REG. No:</td>
-                                    <td class="text-[15px]">{{student.matricNumber}} [{{student.jambNumber}}]</td>
-                                </tr>
-
-                                
-
-                                <tr class="flex flex-row  mb-3">
-                                    <td class="text-[15px] text-red-700 w-[250px]">DEPARTMENT:</td>
-                                    <td class="text-[15px]">{{student.department}}</td>
-                                </tr>
-
-                                <tr class="flex flex-row  mb-3">
-                                    <td class="text-[15px] text-red-700 w-[250px]">PROGRAMME:</td>
-                                    <td class="text-[15px]">{{student.programme}}</td>
-                                </tr>
-
-                                <tr class="flex flex-row  mb-3">
-                                    <td class="text-[15px] text-red-700 w-[250px]">SESSION:</td>
-                                    <td class="text-[15px]">{{curr_sess}}</td>
-                                </tr>
-
-
-                                <tr class="flex flex-row  mb-3">
-                                    <td class="text-[15px] text-red-700 w-[250px]">SESSION:</td>
-                                    <td class="text-[15px]">{{curr_sess}}</td>
-                                </tr>
-
-                                <tr class="flex flex-row  mb-3">
-                                    <td class="text-[15px] text-red-700 w-[250px]">CURRENT LEVEL:</td>
-                                    <td class="text-[15px]">{{student.currentLevel}}</td>
-                                </tr>
-
-                                
-                            </tbody>
-                        </table>
-                        
-
-                        <div class="mt-[10px]">
-                            <div class='border-solid border-[#064b25] border-[2px] rounded-[20px]'>
-                                <img class='w-[90px] rounded-[20px]' src="{{student.passport.url}}" alt="" />
-                            </div>
-                        </div>
+                    <div class="mb-4 flex items-center gap-2">
+                      <input type="text" id="search-input" placeholder="Search students..." class="border rounded-lg p-2 w-full">
                     </div>
-                    {% endif %}
-
-
-                    
-                    
-                    <div class="mt-10">
-                        <h4 class="text-[22px]">Registered courses</h4>
-                    </div>
-
-                    <div class="mt-4 flex flex-col">
-                        <div class="">
-                            <div class="flex flex-row gap-9">
-                                <h3 class="level text-[18px] text-[#077105] font-bold">{{ student.level.name }} Level</h3>
-
-                                <span class="">{{ curr_sess }}</span>
-                            </div>
-
-                            
-                            <div class="mt-3">
-                                <div class="flex flex-row gap-9">
-                                    <h4 class="font-bold text-[18px] text-uppercase">{{curr_semes}} Semester</h4>
-                                    {% comment %} <span class="">Total Registerred Unit: 24</span> {% endcomment %}
-                                </div>
-                                <div class="flex flex-row gap-4 mt-5  border-y-[1px] border-[#000] px-[30px] py-[10px] overflow-x-scroll">
-
-                                    {% for reg in registrations %}  
-                                        <div class="card min-w-[140px] rounded-md border-[0.5px] border-[#077105] px-[5px] py-[10px]">
-                                            <div class="flex flex-row justify-between">
-                                                <h5 class="font-bold text-[15px]">{{reg.course.courseCode}}</h5>
-
-                                                <span class="text-[#077105] font-bold">{{reg.course.status}}</span>
-                                            </div>
-                                            <p class="mt-3 text-[10px]"><span class="text-12px font-bold">Title: </span>{{reg.course.title}}</p>
-                                            
-                                            {% comment %} <div class="mt-3 flex flex-row justify-between items-center">
-                                                {% if reg.session == curr_sess and reg.semester == curr_semes %}
-                                                <button onclick="handleGradeUpdateModal('{{reg.id}}', '{{reg.course.title}}', '{{reg.course.courseCode}}')"><img class="w-[15px]" src="{% static './assets/bx-edit.svg' %}" alt=""></button>
-                                                {% endif %}
-                                                <div class="flex flex-row gap-3">
-                                                    <div class="text-[12px]"><span class="font-bold">Grade:</span> <i class="">{{data.result.grade}}</i></div>
-                                                    <span class="text-[12px] font-bold">{{data.result.grade_type}}</span>
-                                                </div>
-                                            </div> {% endcomment %}
-
-                                            {% comment %} <div class="mt-3 flex flex-row justify-between items-center">
-                                               <span>NO of attempsts</span>
-
-                                                <span>{{data.result.attempt_number}}</span>
-                                            </div> {% endcomment %}
-
-                                            <div class="flex justify-between mt-4 text-[11px] font-bold">
-                                                {{reg.session}}
-                                                {% if reg.session == curr_sess and reg.semester == curr_semes %}
-                                                <button class="text-red-700" onclick="handleDeletePopOut('/advisor/student/management/reg/delete/{{reg.id}}/{{student.matricNumber}}/', '{{reg.course.title}}')">Delete</button>
-                                                {% endif %}
-                                                <span class="">{{reg.course.unit}}</span>
-                                                
-                                            </div>
-
-                                            <div class="flex justify-between mt-4 text-[11px] font-bold">
-                                                <span class="">Course Status</span>
-                                                <span class="">({{reg.instructor_remark}})</span>
-                                            </div>
-
-                                            <div class="flex justify-between mt-4 text-[11px] font-bold">
-                                                {% if reg.instructor_remark != 'approved' and reg.instructor_remark != 'rejected' and reg.session == curr_sess and reg.semester == curr_semes %}
-                                                <a href="/advisor/student/reg/approved/{{reg.id}}/{{student.matricNumber}}/" class="rounded-md border-[0.5px] border-[#077105] px-[2px] py-[3px] hover:py-[2px] hover:bg-[#077105] hover:text-[#fff] text-[8px] font-semibold">Approve</a>
-
-                                                <a href="/advisor/student/reg/rejected/{{re.id}}/{{student.matricNumber}}/" class="rounded-md border-[0.5px] border-red-700 px-[2px] py-[3px] text-red-700 hover:py-[2px] hover:bg-red-700 hover:text-[#fff] text-[10px] font-semibold">Reject</a>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    {% endfor %}  
-                                    
-
-
-                                    
-
-                               
-
-
-                                   
-                                </div>
-                            </div>
-                            
-
-                            {% comment %} <div class="mt-3">
-                                <div class="flex flex-row gap-9">
-                                    <h4 class="font-bold text-[18px]">Second</h4>
-                                    <span class="">Total Registerred Unit: 24</span>
-                                </div>
-                                <div class="flex flex-row gap-4 mt-5  border-y-[1px] border-[#000] px-[30px] py-[10px] overflow-x-scroll">
-                                    {% for data in sessions_and_levels %}
-                                        {% if  data.level == unique_levels|get_item:i and data.registration.course.semester.name == 'second' %}
-                                        <div class="card min-w-[140px] rounded-md border-[0.5px] border-[#077105] px-[5px] py-[10px]">
-                                            <div class="flex flex-row justify-between">
-                                                <h5 class="font-bold text-[15px]">{{data.registration.course.courseCode}}</h5>
-
-                                                <span class="text-[#077105] font-bold">{{data.registration.course.status}}</span>
-                                            </div>
-                                            <p class="mt-3 text-[10px]"><span class="text-12px font-bold">Title: </span>{{data.registration.course.title}}</p>
-                                            
-                                            <div class="mt-3 flex flex-row justify-between items-center">
-                                                {% if data.result.grade %}
-                                                <button onclick="handleGradeUpdateModal('{{data.registration.id}}', '{{data.registration.course.title}}', '{{data.registration.course.courseCode}}')"><img class="w-[15px]" src="{% static './assets/bx-edit.svg' %}" alt=""></button>
-                                                {% endif %}
-                                                <div class="flex flex-row gap-3">
-                                                    <div class="text-[12px]"><span class="font-bold">Grade:</span> <i class="">{{data.result.grade}}</i></div>
-                                                    <span class="text-[12px] font-bold">{{data.result.grade_type}}</span>
-                                                </div>
-                                            </div>
-
-                                            <div class="mt-3 flex flex-row justify-between items-center">
-                                               <span>NO of attempsts</span>
-
-                                                <span>{{data.result.attempt_number}}</span>
-                                            </div>
-
-                                            <div class="flex justify-between mt-4 text-[11px] font-bold">
-                                                {% if data.registration.session == curr_sess and data.registration.session == curr_semes %}
-                                                <button class="text-red-700" onclick="handleDeletePopOut('/instructor/student/management/reg/delete/{{data.registration.id}}', '{{data.registration.course.title}}')">Delete</button>
-                                                {% endif %}
-                                                <span class="">{{data.registration.course.unit}}</span>
-                                            </div>
-
-                                            <div class="flex justify-between mt-4 text-[11px] font-bold">
-                                                <span class="">Course Status</span>
-                                                <span class="">{{data.registration.instructor_remark}}</span>
-                                            </div>
-
-                                            <div class="flex justify-between mt-4 text-[11px] font-bold">
-                                                {% if data.registration.instructor_remark != 'approved' and data.registration.instructor_remark != 'rejected' and data.registration.session == curr_sess and data.registration.semester == curr_semes %}
-                                                <a href="/instructor/student/reg/approved/{{data.registration.id}}" class="rounded-md border-[0.5px] border-[#077105] px-[2px] py-[3px] hover:py-[2px] hover:bg-[#077105] hover:text-[#fff] text-[8px] font-semibold">Approve</a>
-
-                                                <a href="/instructor/student/reg/rejected/{{data.registration.id}}" class="rounded-md border-[0.5px] border-red-700 px-[2px] py-[3px] text-red-700 hover:py-[2px] hover:bg-red-700 hover:text-[#fff] text-[10px] font-semibold">Reject</a>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                    {% endfor %}
-                                    
-
-                               
-
-
-                                   
-                                </div>
-                            </div> {% endcomment %}
-                            
-                        </div>
-
-
-
-                        <hr class="mt-4">
-                    
-
-                        
-                        
-                    </div>
-                    
+                    <table class="w-full text-left border-collapse">
+                      <thead>
+                        <tr>
+                          <th class="border-b p-2">Name</th>
+                          <th class="border-b p-2">Matric No</th>
+                          <th class="border-b p-2">Level</th>
+                          <th class="border-b p-2">Pending Courses</th>
+                          <th class="border-b p-2">Approved Courses</th>
+                          <th class="border-b p-2">Status</th>
+                          <th class="border-b p-2">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody id="student-table">
+                        <!-- Students data will be populated here -->
+                         {% for data in student_data %}
+                         <tr>
+                            <td class="border-b p-2 font-medium">{{data.student.surname}} {{data.student.otherNames}}</td>
+                            <td class="border-b p-2">{{data.student.matricNumber}}</td>
+                            <td class="border-b p-2">{{data.student.currentLevel}}</td>
+                            <td class="border-b p-2">{{data.pending_courses}}</td>
+                            <td class="border-b p-2">{{data.approved_courses}}</td>
+                            <td class="border-b p-2">
+                            {% if data.student.pendingCourses > 0 %}
+                                <span class="bg-red-200 text-red-700 px-2 py-1 rounded">Pending</span>
+                            {% else %}
+                                <span class="bg-green-200 text-green-700 px-2 py-1 rounded">Approved</span>
+                            {% endif %}
+                            </td>
+                            <td class="border-b p-2">
+                              <a href="/advisor/reg/?q={{data.student.matricNumber}}" class="bg-blue-500 text-white px-3 py-1 rounded">View Details</a>
+                            </td>
+                         </tr>
+                         {% endfor %}
+                      </tbody>
+                    </table>
                 </div>
             </div>
 

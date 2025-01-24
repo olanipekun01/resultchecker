@@ -1877,12 +1877,58 @@ def AdvisorDashboard(request):
 
 @login_required
 @user_passes_test(is_advisor, login_url='/404')
+def StudentList(request):
+    if request.user.is_authenticated:
+        user = request.user
+        advisor = get_object_or_404(LevelAdvisor, user=user)
+        current_session_model = Session.objects.filter(is_current=True).first()
+        current_semester_model = Semester.objects.filter(is_current=True).first()
+        courses = Course.objects.all()
+
+
+        students = Student.objects.filter(
+            department=advisor.department,
+            currentLevel=advisor.level,
+            currentSession=current_session_model.year
+        )
+
+        print("students", students)
+        
+        student_data = []
+        for student in students:
+            # Get the registrations for the current session and semester
+            registrations = Registration.objects.filter(
+                student=student,
+                session=current_session_model,
+                semester=current_semester_model,
+            )
+            approved_count = registrations.filter(instructor_remark="approved").count()
+            pending_count = registrations.filter(instructor_remark="pending").count()
+
+            # Append the data
+            student_data.append({
+                "student": student,
+                "approved_courses": approved_count,
+                "pending_courses": pending_count,
+            })
+
+        
+
+
+    
+        return render(request, 'levelAdvisor/student.html', {'student_data': student_data, 
+                                                            'curr_sess': current_session_model,
+                                                            'curr_semes': current_semester_model})
+    
+@login_required
+@user_passes_test(is_advisor, login_url='/404')
 def AdvisorReg(request):
     if request.user.is_authenticated:
         user = request.user
         advisor = get_object_or_404(LevelAdvisor, user=user)
         current_session_model = Session.objects.filter(is_current=True).first()
         current_semester_model = Semester.objects.filter(is_current=True).first()
+        courses = Course.objects.all()
 
         matricNo = request.GET.get('q')
     
@@ -1908,7 +1954,7 @@ def AdvisorReg(request):
                 
                 
                 return render(request, 'levelAdvisor/studentManagement.html', {"department": advisor.department, 'curr_sess': current_session_model, 'curr_semes': current_semester_model, 'student': student,
-                        'matricNo': matricNo, 'registrations': registrations})
+                        'matricNo': matricNo, 'courses': courses, 'registrations': registrations})
             # except Exception as e:
             #     messages.info(request, f'Student not available {e}')
             #     return redirect(f"/advisor/reg/")
@@ -1920,7 +1966,7 @@ def AdvisorReg(request):
 
 @login_required
 @user_passes_test(is_advisor, login_url='/404')
-def AdvisorDeleteStudentRegisteredCourse(request, id):
+def AdvisorDeleteStudentRegisteredCourse(request, id, matricNo):
     if request.user.is_authenticated:
         user = request.user
         advisor = get_object_or_404(LevelAdvisor, user=user)
@@ -1928,20 +1974,19 @@ def AdvisorDeleteStudentRegisteredCourse(request, id):
         current_semester_model = Semester.objects.filter(is_current=True).first()
     try:
         regObjects = Registration.objects.filter(id=id)[0]
-        print("1", regObjects.course.title)
         if regObjects.session == current_session_model and regObjects.semester == current_semester_model and regObjects.instructor_remark != 'approved':
             if Registration.objects.all().filter(id=id).exists():
                 messages.info(request, f'{regObjects.course.title} deleted successfully')
                 regObjects= Registration.objects.filter(id=id).delete()
                 
-                return redirect("/advisor/reg/")
+                return redirect(f"/advisor/reg/?q={matricNo}")
             messages.info(request, f'Registered Course not available')
-            return redirect("/advisor/reg/")
+            return redirect(f"/advisor/reg/?q={matricNo}")
         messages.info(request, f'Cannot perform Opereation')
-        return redirect("/advisor/reg/")
+        return redirect(f"/advisor/reg/?q={matricNo}")
     except:
         messages.info(request, f'Registered Course not available')
-        return redirect("/advisor/reg/")
+        return redirect(f"/advisor/reg/?q={matricNo}")
 
 @login_required
 @user_passes_test(is_advisor, login_url='/404')
@@ -1958,22 +2003,20 @@ def AdvisorAddCourseStudentRegisteredCourse(request, matricNo):
                 curr_session = request.GET['curr_session']
                 current_session_model = Session.objects.filter(is_current=True).first()
                 current_semester_model = Semester.objects.filter(is_current=True).first()
-                print('semester', curr_semester, current_semester_model , type(curr_semester), type(current_semester_model), curr_semester==current_semester_model)
-                print('session', curr_session, current_session_model , type(curr_session), type(current_session_model), curr_session==current_session_model)
-
+               
                 if curr_session == current_session_model.year and curr_semester == current_semester_model.name:
                     course = get_object_or_404(Course, id=courseId)
 
                     if course.semester.name != current_semester_model.name:
                         messages.info(request, f'Invalid course to enter')
-                        return redirect("/instructor/student/management/")
+                        return redirect(f"/advisor/reg/?q={matricNo}")
                     
                     if Registration.objects.all().filter(student=student, 
                                                     course=get_object_or_404(Course, id=courseId), 
                                                     session=get_object_or_404(Session, year=curr_session),
                                                     semester=get_object_or_404(Semester, name=curr_semester)).exists():
                         messages.info(request, f'Already registered')
-                        return redirect("/instructor/student/management/")
+                        return redirect(f"/advisor/reg/?q={matricNo}")
 
                     course_exist = Registration.objects.create(
                         student=student,
@@ -1983,44 +2026,43 @@ def AdvisorAddCourseStudentRegisteredCourse(request, matricNo):
                     )
                     course_exist.save()
                     messages.info(request, f'Course Updated')
-                    return redirect("/instructor/student/management/")
+                    return redirect(f"/advisor/reg/?q={matricNo}/")
                 messages.info(request, f'Something went wrong!!')
-                return redirect("/instructor/student/management/")
+                return redirect(f"/advisor/reg/?q={matricNo}")
             messages.info(request, f'Student does not exist')
-            return redirect("/instructor/student/management/")
+            return redirect(f"/advisor/reg/?q={matricNo}")
         except:
             messages.info(request, f'Something went wrong')
-            return redirect("/instructor/student/management/")
+            return redirect(f"/advisor/reg/?q={matricNo}")
             
 
 @login_required
 @user_passes_test(is_advisor, login_url='/404')
-def AdvisorApproveRejectReg(request, stats, id):
+def AdvisorApproveRejectReg(request, stats, id, matricNo):
     if request.user.is_authenticated:
         user = request.user
-        instructor = get_object_or_404(Instructor, user=user)
+        advisor = get_object_or_404(LevelAdvisor, user=user)
         current_session_model = Session.objects.filter(is_current=True).first()
         current_semester_model = Semester.objects.filter(is_current=True).first()
 
         try:
-            print(stats)
             if stats == 'approved' or stats == 'rejected':
                 reg = Registration.objects.filter(id=id).first()
                 if reg.session == current_session_model and reg.semester == current_semester_model:
                     reg.instructor_remark = stats
                     reg.save()
                     messages.info(request, f'Registered Course {stats}!!')
-                    return redirect("/instructor/student/management/")
+                    return redirect(f"/advisor/reg/?q={matricNo}")
                 else:
                     messages.info(request, f'Request not allowed')
-                    return redirect("/instructor/student/management/")
+                    return redirect(f"/advisor/reg/?q={matricNo}")
             else:
                 messages.info(request, f'Invalid request')
-                return redirect("/instructor/student/management/")      
+                return redirect(f"/advisor/reg/?q={matricNo}")      
         except:
             messages.info(request, f'Registered Course not available')
-            return redirect("/instructor/student/management/")
-    return render(request, 'admin/student_dashboard.html')
+            return redirect(f"/advisor/reg/?q={matricNo}")
+    return render(request, 'advisor/studentManagement.html')
 
 
 
