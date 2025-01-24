@@ -1892,7 +1892,31 @@ def StudentList(request):
                     student = Student.objects.all().filter(Q(matricNumber=matricNo) | Q(jambNumber=matricNo), department=advisor.department, currentLevel=advisor.level, currentSession=current_session_model.year).first()
                     
                     if student:
+                        student_data = []
+        for student in students:
+            # Get the registrations for the current session and semester
+            registrations = Registration.objects.filter(
+                student=student,
+                session=current_session_model,
+                semester=current_semester_model,
+            )
+            approved_count = registrations.filter(instructor_remark="approved").count()
+            pending_count = registrations.filter(instructor_remark="pending").count()
 
+            # Append the data
+            student_data.append({
+                "student": student,
+                "approved_courses": approved_count,
+                "pending_courses": pending_count,
+            })
+
+        
+
+
+    
+        return render(request, 'levelAdvisor/student.html', {'student_data': student_data, 
+                                                            'curr_sess': current_session_model,
+                                                            'curr_semes': current_semester_model})
 
 
         students = Student.objects.filter(
