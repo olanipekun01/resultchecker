@@ -1885,6 +1885,15 @@ def StudentList(request):
         current_semester_model = Semester.objects.filter(is_current=True).first()
         courses = Course.objects.all()
 
+        if request.method == "GET":
+            matricNo = request.POST["matricNo"].strip()
+            if matricNo != "":
+                try:
+                    student = Student.objects.all().filter(Q(matricNumber=matricNo) | Q(jambNumber=matricNo), department=advisor.department, currentLevel=advisor.level, currentSession=current_session_model.year).first()
+                    
+                    if student:
+
+
 
         students = Student.objects.filter(
             department=advisor.department,
