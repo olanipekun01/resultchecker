@@ -1885,7 +1885,7 @@ def StudentList(request):
         current_semester_model = Semester.objects.filter(is_current=True).first()
         courses = Course.objects.all()
 
-        if request.method == "GET":
+        if request.method == "POST":
             matricNo = request.POST["matricNo"].strip()
             if matricNo != "":
                 try:
@@ -1893,6 +1893,44 @@ def StudentList(request):
                     
                     if student:
                         student_data = []
+
+                        
+                        registrations = Registration.objects.filter(
+                            student=student,
+                            session=current_session_model,
+                            semester=current_semester_model,
+                        )
+                        approved_count = registrations.filter(instructor_remark="approved").count()
+                        pending_count = registrations.filter(instructor_remark="pending").count()
+
+                        # Append the data
+                        student_data.append({
+                            "student": student,
+                            "approved_courses": approved_count,
+                            "pending_courses": pending_count,
+                        })
+                
+                        return render(request, 'levelAdvisor/student.html', {'student_data': student_data, 
+                                                                            'curr_sess': current_session_model,
+                                                                            'curr_semes': current_semester_model})
+                    else:
+                        messages.error(request, f"Student not found!")
+                        return redirect('/advisor/students/')
+                except Exception as e:
+                    messages.error(request, f"An error occurred: {str(e)}")
+                    return redirect('/advisor/students/')
+                    
+        
+        students = Student.objects.filter(
+            department=advisor.department,
+            currentLevel=advisor.level,
+            currentSession=current_session_model.year
+        )
+
+        print("students", students)
+
+        student_data = []
+
         for student in students:
             # Get the registrations for the current session and semester
             registrations = Registration.objects.filter(

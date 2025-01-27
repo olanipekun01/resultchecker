@@ -287,7 +287,8 @@
                         </div>
 
                         <div class="">
-                            <form action="/advisor/student/" method="get" class="">
+                            <form action="/advisor/students/" method="post" class="">
+                                {% csrf_token %}
                                 <input name="matricNo" type="text" class="">
                                 <button>Search</button>
                             </form>
