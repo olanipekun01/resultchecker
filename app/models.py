@@ -85,17 +85,13 @@ class Department(models.Model):
     
 class Programme(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    PROGRAMME_CHOICES = (
-        ('ond', 'OND Nursing'),
-        ('hnd', 'HND Nursing'),
-    )
-    name = models.CharField(max_length=20, choices=PROGRAMME_CHOICES, unique=True, null=True, blank=True)
+    name = models.CharField(max_length=100, null=True, blank=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
     duration = models.IntegerField(blank=True, null=True)
     degree = models.CharField(blank=True, null=True, max_length=50)
 
     def __str__(self):
-        return self.get_name_display()
+        return self.name
 
 
 class Student(models.Model):
@@ -194,12 +190,12 @@ class Course(models.Model):
     status = models.CharField(blank=True, choices=COURSE_CHOICES, default='C', null=True, max_length=40)
     category = models.CharField(blank=True, choices=CATEGORY_CHOICES, default='NNC', null=True, max_length=40)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    programme = models.ForeignKey(Programme, on_delete=models.CASCADE, related_name='courses', null=True, blank=True, default="")
+    programme = models.ManyToManyField(Programme, related_name='courses', null=True, blank=True, default="")
     level = models.ForeignKey(Level, on_delete=models.CASCADE)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE,  null=True, default=None)
 
     def __str__(self):
-        return f"{self.courseCode} - {self.title}"
+        return f"{self.courseCode} - {self.id}"
 
 class Instructor(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, primary_key=True)

@@ -105,9 +105,10 @@ let searchBtn = document.querySelector('.bx-search');
         sidebar.classList.toggle("active");
     }
 
-    // function handleCourseUpdateModal(title, code, unit, status, semester, level, id, selectedProgrammes) {
-    function handleCourseUpdateModal(title, code, unit, status, semester, level, id) {
-        console.log('details', title, code, semester, unit, status, level);
+    function handleCourseUpdateModal(title, code, unit, status, semester, courseCat, level, id, selectedProgrammes) {
+    // function handleCourseUpdateModal(title, code, unit, status, semester, level, id) {
+        
+        console.log('details', title, code, semester, unit, status, level, courseCat);
         document.querySelector(".update_programme").style.display = "block";
         document.querySelector(".background_wrapper").style.display = "block";
         document.querySelector(".update_programme").style.display = "block";
@@ -115,18 +116,19 @@ let searchBtn = document.querySelector('.bx-search');
         document.querySelector('#updateCourseTitleInput').value = title;
         document.querySelector('#updateCourseCodeInput').value = code;
         document.querySelector('#updateCourseUnitInput').value = unit;  
-        document.querySelector('#updateCourseStatusInput').value = status;  
+        document.querySelector('#updateCourseStatusInput').value = status; 
+        document.querySelector('#updateCourseCat').value = courseCat;  
         document.querySelector('#updateCourseSemesterInput').value = semester;
         document.querySelector('#updateCourseLevelInput').value = level; 
         document.querySelector('#updateCourseIdInput').value = id;
 
-        // document.querySelectorAll('.course-checkbox').forEach(checkbox => {
-        //     if (selectedProgrammes.includes(checkbox.value)) {
-        //         checkbox.checked = true;
-        //     } else {
-        //         checkbox.checked = false;
-        //     }
-        // });
+        document.querySelectorAll('.course-checkbox').forEach(checkbox => {
+            if (selectedProgrammes.includes(checkbox.value)) {
+                checkbox.checked = true;
+            } else {
+                checkbox.checked = false;
+            }
+        });
 
         // document.querySelectorAll('.course-checkbox').forEach(checkbox => {
         //     checkbox.checked = false;

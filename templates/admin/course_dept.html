@@ -290,84 +290,41 @@
                 {% endfor %}
                 <div class='mt-1 border-[1px] border-[#000] px-[30px] py-[10px]'>
                     <div class="">
-                        <h4 class="text-[22px]">Courses</h4>
+                        <h4 class="text-[22px]">ALL DEPARTMENTS</h4>
                     </div>
 
                     <div class="mt-4 flex flex-col">
 
-                        {% for i in courseLevels %}
+                        
 
-                        <div class="">
-                            <h3 class="level text-[18px] text-[#077105] font-bold">{{i}} Level</h3>
+                                
+                        
+                        <div class="flex flex-row gap-4 mt-5  border-y-[1px] border-[#000] px-[30px] py-[10px] overflow-x-scroll">
+
                             
-                            <div class="mt-3">
-                                <h4 class="font-bold text-[18px]">First</h4>
-                                <div class="flex flex-row gap-4 mt-5  border-y-[1px] border-[#000] px-[30px] py-[10px] overflow-x-scroll">
+
+                            {% for dept in depts %}
+                                <div class="card min-w-[140px] rounded-md border-[0.5px] border-[#077105] px-[5px] py-[10px]">
+                                    <div class="flex flex-row justify-between">
+                                        <a href="/instructor/courses/{{dept.id}}"><h5 class="font-bold text-[15px]">{{dept.name}}</h5></a>
+
+                                        
+                                    </div>
+                                    <p class="mt-3 text-[10px]"><span class="text-12px font-bold">Title: </span>{{dept.name}}</p>
 
                                     
-
-                                    {% for course in courses %}
-                                        {% if course.level == i and course.semester == 'first' %}
-                                        <div class="card min-w-[140px] rounded-md border-[0.5px] border-[#077105] px-[5px] py-[10px]">
-                                            <div class="flex flex-row justify-between">
-                                                <a href="/instructor/courses/each/{{course.id}}"><h5 class="font-bold text-[15px]">{{course.code}}</h5></a>
-
-                                                <span class="text-[#077105] font-bold">{{course.status}}</span>
-                                            </div>
-                                            <p class="mt-3 text-[10px]"><span class="text-12px font-bold">Title: </span>{{course.title}}</p>
-
-                                            <div class="flex justify-between mt-2 text-[11px] font-bold">
-                                                <button onclick="handleCourseUpdateModal('{{course.title}}','{{course.code}}', '{{course.unit}}', '{{course.status}}', '{{course.semester}}', '{{course.category}}', '{{course.level}}', '{{course.id}}', {{course.programmes | safe}})">Update</button>
-                                                {% comment %} <button onclick="handleCourseUpdateModal('{{course.title}}','{{course.code}}', '{{course.unit}}', '{{course.status}}', '{{course.semester}}', '{{course.level}}', '{{course.id}}')">Update</button> {% endcomment %}
-                                                <button class="text-red-700" onclick="handleDeletePopOut('/instructor/courses/delete/{{deptid}}/{{course.id}}', '{{course.code}}')">Delete</button>
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                    {% endfor %}
-
-
-                                    
-
-                               
-
-
-                                   
                                 </div>
-                            </div>
-
-                            <div class="mt-3">
-                                <h4 class="font-bold text-[18px]">Second</h4>
-                                <div class="flex flex-row gap-4 mt-5  border-y-[1px] border-[#000] px-[30px] py-[10px] overflow-x-scroll">
-
-                                    {% for course in courses %}
-                                        {% if course.level == i and course.semester == 'second' %}
-                                        <div class="card min-w-[140px] rounded-md border-[0.5px] border-[#077105] px-[5px] py-[10px]">
-                                            <div class="flex flex-row justify-between">
-                                                <a href="/instructor/courses/each/{{course.id}}"><h5 class="font-bold text-[15px]">{{course.code}}</h5></a>
-
-                                                <span class="text-[#077105] font-bold">{{course.status}}</span>
-                                            </div>
-                                            <p class="mt-3 text-[10px]"><span class="text-12px font-bold">Title: </span>{{course.title}}</p>
-
-                                            <div class="flex justify-between mt-2 text-[11px] font-bold">
-                                                <button onclick="handleCourseUpdateModal('{{course.title}}','{{course.code}}', '{{course.unit}}', '{{course.status}}', '{{course.semester}}', '{{course.category}}', '{{course.level}}', '{{course.id}}', {{course.programmes | safe}})">Update</button>
-                                                {% comment %} <button onclick="handleCourseUpdateModal('{{course.title}}','{{course.code}}', '{{course.unit}}', '{{course.status}}', '{{course.semester}}', '{{course.level}}', '{{course.id}}')">Update</button> {% endcomment %}
-                                                <button class="text-red-700" onclick="handleDeletePopOut('/instructor/courses/delete/{{deptid}}/{{course.id}}', '{{course.courseCode}}')">Delete</button>
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                    {% endfor %}
-
-                               
+                            {% endfor %}
 
 
-                                   
-                                </div>
-                            </div>
+                            
+
+                        
+
+
+                            
                         </div>
-                        {% endfor %}
-
-                        <hr class="mt-4">
+                            
 
                         
                     </div>
@@ -390,7 +347,7 @@
 
 
     <div class="create_programme">
-        <form method="post" action="/instructor/courses/{{deptid}}/">
+        <form method="post" action="/instructor/courses/">
           {% csrf_token %}
 
           <h4 class="mb-8 text-[23px] ml-5 text-red-700">Create</h1>
@@ -426,19 +383,19 @@
             
             
             
-            {% comment %} <select name="programme" id="">
+            <select name="programme" id="">
                 {% for prog in programme %}
                 <option value="{{prog.id}}" class="">{{prog.name}}</option>
                 {% endfor %}
-            </select> {% endcomment %}
+            </select>
            
 
 
 
           <!-- </div> -->
 
-          <div class="flex flex-col mb-[60px] w-[100%] h-[300px] overflow-y-scroll">
-            {% for p in programme %}
+          <div class="flex flex-col mb-[60px] w-[100%] h-[300px] overflow-y-scroll"> 
+            {% for p in programmes %}
                 <div class="flex flex-row">
                     <input type="checkbox" data-unit="3" value="{{p.id}}" name="programmes" id="" class="course-checkbox">
                          
@@ -446,15 +403,11 @@
                 </div>
             {% endfor %}
 
+            
 
 
           </div>
 
-          <select name="courseCat" id="">
-            <option value="non nursing course" class="">nnc</option>
-            <option value="nursing course" class="">nc</option>
-            <option value="life science" class="">ls</option>
-          </select>
 
           <select name="level" id="">
             <option value="ND1" class="">ND1</option>
@@ -486,7 +439,7 @@
   
 
     <div class="update_programme">
-        <form method="post" action="/instructor/courses/{{deptid}}/update/">
+        <form method="post" action="/instructor/courses/update/">
           {% csrf_token %}
 
           <h4 class="mb-8 text-[23px] ml-5 text-red-700">Update</h1>
@@ -530,22 +483,8 @@
             value="C"
           />
 
-          <!-- <div class="flex flex-col mb-[60px] w-[100%] h-[300px] overflow-y-scroll"> -->
-            <!-- {% for p in programmes %}
-                <div class="flex flex-row">
-                    <input type="checkbox" data-unit="3" value="{{p.id}}" name="programmes" id="" class="course-checkbox">
-                         
-                    <label class="" for="">{{p.name}}</label>
-                </div>
-            {% endfor %} -->
-
-            
-
-
-          <!-- </div> -->
-
-          <div class="flex flex-col mb-[60px] w-[100%] h-[300px] overflow-y-scroll">
-            {% for p in programme %}
+          <div class="flex flex-col mb-[60px] w-[100%] h-[300px] overflow-y-scroll"> -->
+            {% for p in programmes %}
                 <div class="flex flex-row">
                     <input type="checkbox" data-unit="3" value="{{p.id}}" name="programmes" id="" class="course-checkbox">
                          
@@ -553,16 +492,16 @@
                 </div>
             {% endfor %}
 
+            
 
 
           </div>
 
-          <select name="courseCat" id="updateCourseCat">
-            <option value="non nursing course" class="">nnc</option>
-            <option value="nursing course" class="">nc</option>
-            <option value="life science" class="">ls</option>
+          <select name="programme" id="">
+            {% for prog in programme %}
+            <option value="{{prog.id}}" class="">{{prog.name}}</option>
+            {% endfor %}
           </select>
-
 
 
           <select name="level" id="updateCourseLevelInput">

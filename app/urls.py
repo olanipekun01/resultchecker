@@ -26,9 +26,10 @@ urlpatterns = [
     path('instructor/programmes/upgrade/', views.UpdateProgramme, name='instructor_programme_update'),
 
 
-    path('instructor/courses/', views.adminCourseManagement, name='instructor_course_dashboard'),
-    path('instructor/courses/update/', views.updateCourse, name='instructor_course_update'),
-    path('instructor/courses/delete/<str:id>/', views.deleteCourse, name='instructor_delete_course'),
+    path('instructor/courses/', views.CourseDept, name='instructor_course_department'),
+    path('instructor/courses/<str:dept>/', views.adminCourseManagement, name='instructor_course_dashboard'),
+    path('instructor/courses/<str:dept>/update/', views.updateCourse, name='instructor_course_update'),
+    path('instructor/courses/delete/<str:dept>/<str:id>/', views.deleteCourse, name='instructor_delete_course'),
     path('instructor/courses/each/<str:id>/', views.eachCourse, name='instructor_each_course'),
     path('instructor/download/course-csv/', views.DownloadStudentCourse, name='instructor_course_student_download'),
     path('instructor/upload/course-csv/', views.upload_csv, name='upload_csv'),
