@@ -1021,12 +1021,14 @@ def adminProgrammeManagement(request):
 
         user = request.user
         instructor = get_object_or_404(Instructor, user=user)
-        programmes = Programme.objects.filter(department=instructor.department)
+        # programmes = Programme.objects.filter(department=instructor.department)
+        programmes = Programme.objects.all()
         # countCourses = len(Course.objects.filter(department=instructor.department))
         if request.method == "POST":
             programme_name = request.POST["programme_name"]
             programme_duration = request.POST["programme_duration"]
             programme_degree = request.POST["programme_degree"]
+            programme_dept = request.POST["programme_dept"]
 
             if (
                 programme_name != ""
@@ -1040,7 +1042,7 @@ def adminProgrammeManagement(request):
 
                     programmeObjects = Programme.objects.create(
                         name=programme_name,
-                        department=instructor.department,
+                        department=get_object_or_404(Department, id=programme_dept),
                         duration=programme_duration,
                         degree=programme_degree,
                     )
@@ -1054,15 +1056,71 @@ def adminProgrammeManagement(request):
                 messages.info(request, f"Fields cannot be empty")
                 return redirect("/instructor/programmes")
 
-    return render(
+        return render(
+            request,
+            "admin/admin_program_management.html",
+            {
+                "programmes": programmes,
+                "department": instructor.department,
+                "allDepts": Department.objects.all()
+            },
+        )
+
+@login_required
+@user_passes_test(is_instructor, login_url="/404")
+def adminProgrammeDepartmentManagement(request, dept):
+    if request.user.is_authenticated:
+
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        programmes = Programme.objects.all()
+
+        prog = get_object_or_404(Programme, id=dept)
+
+        levels = Level.objects.all()
+
+        return render(
         request,
-        "admin/admin_program_management.html",
+        "admin/admin_program_dept_management.html",
         {
             "programmes": programmes,
-            "department": instructor.department,
+            "dept": dept,
+            "levels": levels,
+            "departs": prog.name
         },
     )
 
+@login_required
+@user_passes_test(is_instructor, login_url="/404")
+def adminProgrammeDepartmentLevelManagement(request, dept, level):
+    if request.user.is_authenticated:
+
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        programmes = Programme.objects.all()
+
+
+        students = Student.objects.all().filter(
+            programme=get_object_or_404(Programme, id=dept),
+            currentLevel=level,
+        )
+
+        
+
+        prog = Programme.objects.all().filter(id=dept).first()
+
+    
+        return render(
+        request,
+        "admin/level_student_list.html",
+        {
+            "programmes": programmes,
+            "departs": prog.name,
+            "studentlist": students,
+            "level": level,
+
+        },
+    )
 
 @login_required
 @user_passes_test(is_instructor, login_url="/404")
@@ -1075,15 +1133,17 @@ def UpdateProgramme(request):
             p_name = request.POST["programme_name"].strip()
             p_duration = request.POST["programme_duration"].strip()
             p_degree = request.POST["programme_degree"].strip()
+            p_dept= request.POST["programme_dept"].strip()
 
             if p_name != "" and p_duration != "" and p_degree != "":
                 try:
                     programmes = Programme.objects.filter(
-                        department=instructor.department, id=p_id
+                        id=p_id
                     )[0]
                     programmes.name = p_name
                     programmes.degree = p_degree
                     programmes.duration = p_duration
+                    programmes.department = get_object_or_404(Department, id=p_dept)
                     programmes.save()
                     messages.info(request, f"Programme Updated")
                     return redirect("/instructor/programmes")
@@ -1112,6 +1172,150 @@ def deleteProgramme(request, id):
     except:
         messages.info(request, f"Programme not available")
         return redirect("/instructor/programmes")
+    
+@login_required
+@user_passes_test(is_instructor, login_url="/404")
+def adminDepartmentManagement(request):
+    if request.user.is_authenticated:
+
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        # programmes = Programme.objects.filter(department=instructor.department)
+        departments = Department.objects.all()
+        # countCourses = len(Course.objects.filter(department=instructor.department))
+        if request.method == "POST":
+            dept_name = request.POST["department_name"]
+
+            if (
+                dept_name != ""
+            ):
+                try:
+                    if Department.objects.all().filter(name=dept_name).exists():
+                        messages.info(request, "Department already exist!")
+                        return redirect("/instructor/departments")
+
+                    deptObjects = Department.objects.create(
+                        name=dept_name,
+                        college=get_object_or_404(College, id="e3aba966-49f1-40b1-a07a-7a79e32aac5d"),
+                    )
+                    deptObjects.save()
+                    messages.info(request, "Department Added!")
+                    return redirect("/instructor/departments")
+                except:
+                    messages.info(request, f"Something went wrong")
+                    return redirect("/instructor/departments")
+            else:
+                messages.info(request, f"Fields cannot be empty")
+                return redirect("/instructor/departments")
+
+        return render(
+            request,
+            "admin/admin_department_management.html",
+            {
+                "departments": departments,
+            },
+        )
+    
+@login_required
+@user_passes_test(is_instructor, login_url="/404")
+def UpdateDepartment(request):
+    if request.user.is_authenticated:
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        if request.method == "POST":
+            dept_id = request.POST["department_id"]
+            dept_name = request.POST["department_name"].strip()
+
+            if dept_name != "":
+                try:
+                    department = Department.objects.filter(
+                        id=dept_id
+                    )[0]
+                    department.name = dept_name
+                    department.save()
+                    messages.info(request, f"Department Updated")
+                    return redirect("/instructor/departments")
+                except:
+                    messages.info(request, f"Department not available")
+                    return redirect("/instructor/departments")
+            messages.info(request, f"Fields cannot be empty")
+            return redirect("/instructor/departments")
+        return redirect("/instructor/departments")
+
+
+@login_required
+@user_passes_test(is_instructor, login_url="/404")
+def deleteDepartment(request, id):
+
+    try:
+        department = Department.objects.filter(id=id)[0]
+        print("1", department.name)
+        if Department.objects.all().filter(id=id).exists():
+            messages.info(request, f"{department.name} deleted successfully")
+            department = Department.objects.filter(id=id).delete()
+
+            return redirect("/instructor/departments")
+        messages.info(request, f"Department not available")
+        return redirect("/instructor/departments")
+    except:
+        messages.info(request, f"Department not available")
+        return redirect("/instructor/departments")
+
+@login_required
+@user_passes_test(is_instructor, login_url="/404")
+def adminLevelDepartmentManagement(request, dept):
+    if request.user.is_authenticated:
+
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        programmes = Programme.objects.all()
+
+        department = get_object_or_404(Department, id=dept)
+
+        levels = Level.objects.all()
+
+        return render(
+        request,
+        "admin/admin_department_level.html",
+        {
+            "programmes": programmes,
+            "dept": dept,
+            "levels": levels,
+            "departs": department.name
+        },
+    )
+
+@login_required
+@user_passes_test(is_instructor, login_url="/404")
+def adminStudentListDepartment(request, dept, level):
+    if request.user.is_authenticated:
+
+        user = request.user
+        instructor = get_object_or_404(Instructor, user=user)
+        programmes = Programme.objects.all()
+
+
+        students = Student.objects.all().filter(
+            department=get_object_or_404(Department, id=dept),
+            currentLevel=level,
+        )
+
+        
+
+        dept = Department.objects.all().filter(id=dept).first()
+
+    
+        return render(
+        request,
+        "admin/dept_level_student_list.html",
+        {
+            "programmes": programmes,
+            "departs": dept.name,
+            "studentlist": students,
+            "level": level,
+
+        },
+    )
 
 @login_required
 @user_passes_test(is_instructor, login_url="/404")

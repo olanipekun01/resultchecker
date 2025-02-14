@@ -271,18 +271,19 @@
                         <img src="{% static './assets/bxs-right-arrow.svg' %}" alt="">
                         <a href="/instructor/add_student/" class="px-3 bg-[#064b25] text-[#ffffff] py-2 w-[100%] text-[13px] hover:bg-[#ffffff] hover:border-solid hover:border-[#064b25] hover:border-[2px] hover:text-[#064b25]">Add Students</a>
                     </div>
+
                 </div>
             </div>
 
             <div class='w-[68%]'>
                 <div class='mt-[20px] bg-[#000000] flex flex-row justify-between  text-white text-[17px] py-2 px-[10px] lg:px-[30px] flex flex-row gap-2 items-center'>
-                    <span class="uppercase">.: Programmes </span>
+                    <span class="uppercase">.: {{departs}}  </span>
 
                     <div class="features flex flex-row gap-8">
-                        <div class="">
+                        {% comment %} <div class="">
                             <img src="" alt="" class="">
                             <button onclick="handleCreateModal()" class="">+ Create</button>
-                        </div>
+                        </div> {% endcomment %}
 
                         <div class="">
                             <form action="" class="">
@@ -299,33 +300,16 @@
                  <h5 style="color: red">{{message}}</h5>
                 {% endfor %}
                 <div class='mt-1 border-[1px] border-[#000] px-[30px] py-[10px]'>
-                    <div class="">
-                        <table class='table'>
-                            <thead class='thead'>
-                                <tr class=''>
-                                    <th class='theadtrtd w-[328px] px-2 text-left'>Program title</th>
-                                    <th class='theadtrtd w-[228px] px-2 text-left'>Duration</th>
-                                    <th class='theadtrtd w-[158px] px-2 text-left'>Degree</th>
-                                    <th class='theadtrtd w-[158px] px-2 text-left'></th>
-                                    <th class='theadtrtd w-[158px] px-2 text-left'></th>
-                                </tr>
-                            </thead>
-                            <tbody class='tbody '>
-                            {% for programme in programmes %}
-                                <tr class='tbodytr'>
-                                    <td class='w-[328px] px-2 capitalize'><a class="text-red-700 hover:underline" href="/instructor/programmes/{{programme.id}}/">{{programme.name}}</a></td>
-                                    <td class='w-[228px] px-2'>{{programme.duration}}</td>
-                                    <td class='w-[158px] px-2 text-green-500'>{{programme.degree}}</td>
-                                    <td class='w-[158px] px-2 text-green-500'><button onclick="handleUpdateModal('{{programme.name}}', '{{programme.duration}}', '{{programme.degree}}', '{{programme.id}}')">update</button></td>
-                                    <td class='w-[158px] px-2'><button class="text-red-700" onclick="handleDeletePopOut('/instructor/programmes/delete/{{programme.id}}', '{{programme.name}}')">delete</button></td>
-                                </tr> 
+                    <div class="flex gap-8">
+                        
+                            {% for level in levels %}
+                                <a href="/instructor/student/list/{{dept}}/{{level.name}}/" class="border rounded p-[10px] bg-[#077105] text-white hover:bg-[#ffffff] hover:text-[#077105]">{{level}}</a>
                             {% endfor %}
                                 <!-- <input type="hidden" name="sess" value="{{ sess }}">
                                 <input type="hidden" name="semes" value="{{ semes }}"> -->
                                 
                                 
-                            </tbody>
-                        </table>
+                           
                     </div>
 
 
@@ -347,108 +331,11 @@
     
 
 
-    <div class="create_programme">
-        <form method="post" action="/instructor/programmes/">
-          {% csrf_token %}
-
-          <h4 class="mb-8 text-[23px] ml-5 text-red-700">Create</h1>
-          <input
-            id="modalNameInput"
-            type="text"
-            name="programme_name"
-            placeholder="Programme Name"
-          />
-          
-          <input type="number" name="programme_duration" placeholder="duration" />
-         
-        <input
-            id="modalNameInput"
-            type="text"
-            name="programme_degree"
-            placeholder="B.Sc"
-          />
-
-        <select name="programme_dept">
-            {% for depts in allDepts %}
-                <option value="{{depts.id}}">{{depts.name}}</option>
-            {% endfor %}
-        </select>
-          
-          <button>submit</button>
-        </form>
-        <button
-          id="cancelNewStock"
-          class="cancel_btn"
-          onclick="closeCreateModal()"
-        >
-          cancel
-        </button>
-    </div>
-  
-
-    <div class="update_programme">
-        <form method="post" action="/instructor/programmes/upgrade/">
-          {% csrf_token %}
-
-          <h4 class="mb-8 text-[23px] ml-5 text-red-700">Update</h1>
-          <input
-            id="updateModalNameInput"
-            type="text"
-            name="programme_name"
-            value="Biochemistry"
-            
-          />
-
-          <input
-            id="updateModalIdInput"
-            hidden
-            type="text"
-            name="programme_id"
-            value="11111111"
-            
-          />
-
-          <input id="updateModalDurationInput" type="number"  value="4" name="programme_duration" placeholder="duration" />
-
-        <select id="updateModalDeptInput" name="programme_dept">
-            {% for depts in allDepts %}
-                <option value="{{depts.id}}">{{depts.name}}</option>
-            {% endfor %}
-        </select>
-
-         <input
-            id="updateModalDegreeInput"
-            type="text"
-            name="programme_degree"
-            placeholder="B.Sc"
-          />
-  
-          
-          <button>submit</button>
-        </form>
-        <button
-          id="cancelNewStock"
-          class="cancel_btn"
-          onclick="closeUpdateModal()"
-        >
-          cancel
-        </button>
-    </div>
+    
 
 
 
-    <div class="deletePopOut">
-        <p>Are you sure you want to delete <span class="popOutItemName"></span>?</p>
-        <div class="btn_wrapper">
-          <button class="danger">
-            <a class="popOutItemLink" href="#">Yes</a>
-          </button>
-          <button id="cancelPopOut" class="cancel_btnPopOut" onclick="closePopOut()">
-            No
-        </button>
-        </div>
-      </div>
-
+    
     <script src="{% static 'js/admin_script.js' %}" type="text/javascript">
         
 

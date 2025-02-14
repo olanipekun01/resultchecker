@@ -20,10 +20,19 @@ urlpatterns = [
 
     path('contact/', views.Contact, name="contact"),
 
-     path('instructor/dashboard/', views.adminDashboard, name='instructor_dashboard'),
+    path('instructor/dashboard/', views.adminDashboard, name='instructor_dashboard'),
     path('instructor/programmes/', views.adminProgrammeManagement, name='instructor_programme_dashboard'),
     path('instructor/programmes/delete/<str:id>/', views.deleteProgramme, name='instructor_delete_programme'),
     path('instructor/programmes/upgrade/', views.UpdateProgramme, name='instructor_programme_update'),
+    path('instructor/programmes/<uuid:dept>/', views.adminProgrammeDepartmentManagement, name='instructor_programme_department_dashboard'),
+    path('instructor/studentlist/<uuid:dept>/<str:level>/', views.adminProgrammeDepartmentLevelManagement, name='instructor_programme_department_level_dashboard'),
+
+
+    path('instructor/departments/', views.adminDepartmentManagement, name="instructorAdminDepartmentManagement"),
+    path('instructor/departments/upgrade/', views.UpdateDepartment, name="instructorUpdateProgramme"),
+    path('instructor/departments/delete/<str:id>/', views.deleteDepartment, name='instructordeleteDepartment'),
+    path('instructor/departments/<uuid:dept>/', views.adminLevelDepartmentManagement, name='instructoradminLevelDepartmentManagement'),
+    path('instructor/student/list/<uuid:dept>/<str:level>/', views.adminStudentListDepartment, name='adminStudentListDepartment'),
 
 
     path('instructor/courses/', views.CourseDept, name='instructor_course_department'),

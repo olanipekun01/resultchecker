@@ -42,6 +42,9 @@ let searchBtn = document.querySelector('.bx-search');
         document.querySelector(".background_wrapper").style.display = "block";
     }
 
+    
+
+
     function closeCreateModal() {
         event.preventDefault();
         document.querySelector(".create_programme").style.display = "none";
@@ -63,6 +66,30 @@ let searchBtn = document.querySelector('.bx-search');
         document.querySelector(".background_wrapper").style.display = "none";
     }
 
+
+    function handleDeptCreateModal() {
+        document.querySelector(".create_department").style.display = "block";
+        document.querySelector(".background_wrapper").style.display = "block";
+    }
+
+    function closeDeptCreateModal() {
+        event.preventDefault();
+        document.querySelector(".create_department").style.display = "none";
+        document.querySelector(".background_wrapper").style.display = "none";
+    }
+
+    function handleDeptUpdateModal(name, id) {
+        document.querySelector(".update_department").style.display = "block";
+        document.querySelector(".background_wrapper").style.display = "block";
+        document.querySelector('#updateModalNameInput').value = name;  
+        document.querySelector('#updateModalIdInput').value = id;
+    }
+
+    function closeDeptUpdateModal() {
+        event.preventDefault();
+        document.querySelector(".update_department").style.display = "none";
+        document.querySelector(".background_wrapper").style.display = "none";
+    }
 
     function showFilterModal() {
         // document.querySelector(".issue_modal_container").style.display = "block";
@@ -179,3 +206,42 @@ let searchBtn = document.querySelector('.bx-search');
         document.querySelector(".update_programme").style.display = "none";
         document.querySelector(".background_wrapper").style.display = "none";
     }
+
+
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Check if this cookie string starts with the name we want
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // function sendData(matric) {
+    //     console.log('im here');
+        // const formData = new FormData();
+        // formData.append('matricNo', matric);
+
+        // fetch('http://localhost:8000/instructor/student/management/', {
+        //     method: 'POST',
+        //     headers: {
+        //         'X-CSRFToken': getCookie('csrftoken')
+        //     },
+        //     body: formData
+        // })
+        // .then(response => response.json())
+        // .then(data => {
+        //     console.log('Success:', data);
+        // })
+        // .catch((error) => {
+        //     console.error('Error:', error);
+        // });
+    // }

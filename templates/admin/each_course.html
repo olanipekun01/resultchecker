@@ -260,6 +260,11 @@
 
                     <div class="flex flex-row gap-2 align-center">
                         <img src="{% static './assets/bxs-right-arrow.svg' %}" alt="">
+                        <a href="/instructor/departments/" class="px-3 bg-[#064b25] text-[#ffffff] py-2 w-[100%] text-[13px] hover:bg-[#ffffff] hover:border-solid hover:border-[#064b25] hover:border-[2px] hover:text-[#064b25]">Departments</a>
+                    </div>
+
+                    <div class="flex flex-row gap-2 align-center">
+                        <img src="{% static './assets/bxs-right-arrow.svg' %}" alt="">
                         <a href="/instructor/courses/" class="px-3 bg-[#064b25] text-[#ffffff] py-2 w-[100%] text-[13px] hover:bg-[#ffffff] hover:border-solid hover:border-[#064b25] hover:border-[2px] hover:text-[#064b25]">Courses</a>
                     </div>
 
@@ -267,12 +272,22 @@
                         <img src="{% static './assets/bxs-right-arrow.svg' %}" alt="">
                         <a href="/instructor/student/management/" class="px-3 bg-[#064b25] text-[#ffffff] py-2 w-[100%] text-[13px] hover:bg-[#ffffff] hover:border-solid hover:border-[#064b25] hover:border-[2px] hover:text-[#064b25]">Registration</a>
                     </div>
+
+                    <div class="flex flex-row gap-2 align-center">
+                        <img src="{% static './assets/bxs-right-arrow.svg' %}" alt="">
+                        <a href="/instructor/programmes/" class="px-3 bg-[#064b25] text-[#ffffff] py-2 w-[100%] text-[13px] hover:bg-[#ffffff] hover:border-solid hover:border-[#064b25] hover:border-[2px] hover:text-[#064b25]">Students</a>
+                    </div>
+
+                    <div class="flex flex-row gap-2 align-center">
+                        <img src="{% static './assets/bxs-right-arrow.svg' %}" alt="">
+                        <a href="/instructor/add_student/" class="px-3 bg-[#064b25] text-[#ffffff] py-2 w-[100%] text-[13px] hover:bg-[#ffffff] hover:border-solid hover:border-[#064b25] hover:border-[2px] hover:text-[#064b25]">Add Students</a>
+                    </div>
                 </div>
             </div>
 
             <div class='w-[68%]'>
                 <div class='mt-[20px] bg-[#000000] flex flex-row justify-between  text-white text-[17px] py-2 px-[10px] lg:px-[30px] flex flex-row gap-2 items-center'>
-                    <span class="">.: {{department}} </span>
+                    <span class="">.: {{departs}} --- {{level}} </span>
 
                     <div class="features flex flex-row gap-8">
                         <div class="">
@@ -343,7 +358,12 @@
                                     
                                        {% for reg in registered_student %}
                                         <tr class='tbodytr'>
-                                            <td class='tbodytrtd'>{{reg.student.matricNumber}}</td>
+                                        <form action="/instructor/student/management/" method="post" class="">
+                                            {% csrf_token %}
+                                            <input name="matricNo" hidden value="{{reg.student.matricNumber}}" type="text" class="">
+                                            <td class='tbodytrtd'><button class="text-red-700 hover:underline">{{reg.student.matricNumber}}</button></td>
+                                        </form>
+                                            
                                             <td class='tbodytrtd'>{{reg.student.surname}}, {{reg.student.otherNames}}</td>
                                             <td class='tbodytrtd'>Registered</td>
                                         </tr>
@@ -442,7 +462,8 @@
 
     <script src="{% static './js/admin_script.js' %}" type="text/javascript">
         
-
     </script>
+
+    
 </body>
 </html>

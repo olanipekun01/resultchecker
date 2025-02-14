@@ -232,36 +232,81 @@
             </div>
             
         </div>
+
         
-        <div class="border rounded-lg p-6 shadow-md">
-            <h1 class="text-2xl font-bold text-purple-800">Manage Students</h1>
-
-            <!-- Alerts -->
-            <div id="alert" class="hidden mb-6 p-4 rounded-lg"></div>
-
-            <!-- Tabs -->
-            <div class="mt-6">
-                {% for message in messages %}
-                        <h5 style="color: red">{{message}}</h5>
-                {% endfor %}
-                <div class="flex border-b">
-                    <h3 id="bulkTab" class="px-4 py-2 text-gray-600">Bulk Upload</h3>
-                </div>
-
-                <!-- Individual Entry -->
-
-                <!-- Bulk Upload -->
-                <form method="POST" enctype="multipart/form-data"  action="/instructor/add_student/">
-                    {% csrf_token %}
-                    <div class="border-2 border-dashed rounded-lg p-6">
-                    <label for="fileUpload" class="cursor-pointer flex flex-col items-center justify-center gap-2">
-                        <span class="text-sm text-gray-500">Click to upload CSV file</span>
-                        <span class="text-xs text-gray-400">File should contain student details in CSV format.</span>
-                    </label>
-                    <input id="fileUpload" name="file" type="file" accept=".csv" class="">
+        <div class="flex flex-row gap-4">
+            <div class="w-[250px] mt-[20px]">
+                <h3 class="bg-[#000000] text-white text-[17px] py-2 px-[10px] lg:px-[10px]">.: Control Menu</h3>
+                <div class="pt-4 px-2 flex flex-col gap-3">
+                    <div class="flex flex-row gap-2 align-center">
+                        <img src="{% static './assets/bxs-right-arrow.svg' %}" alt="">
+                        <a href="/instructor/dashboard/" class="px-3 bg-[#064b25] text-[#ffffff] py-2 w-[100%] text-[13px] hover:bg-[#ffffff] hover:border-solid hover:border-[#064b25] hover:border-[2px] hover:text-[#064b25]">Home</a>
                     </div>
-                    <button id="bulkSubmit" class="mt-4 bg-purple-800 text-white px-4 py-2 rounded-lg">Upload Students</button>
-                </form>
+
+                    <div class="flex flex-row gap-2 align-center">
+                        <img src="{% static './assets/bxs-right-arrow.svg' %}" alt="">
+                        <a href="/instructor/programmes/" class="px-3 bg-[#064b25] text-[#ffffff] py-2 w-[100%] text-[13px] hover:bg-[#ffffff] hover:border-solid hover:border-[#064b25] hover:border-[2px] hover:text-[#064b25]">Programs</a>
+                    </div>
+
+                    <div class="flex flex-row gap-2 align-center">
+                        <img src="{% static './assets/bxs-right-arrow.svg' %}" alt="">
+                        <a href="/instructor/departments/" class="px-3 bg-[#064b25] text-[#ffffff] py-2 w-[100%] text-[13px] hover:bg-[#ffffff] hover:border-solid hover:border-[#064b25] hover:border-[2px] hover:text-[#064b25]">Departments</a>
+                    </div>
+
+                    <div class="flex flex-row gap-2 align-center">
+                        <img src="{% static './assets/bxs-right-arrow.svg' %}" alt="">
+                        <a href="/instructor/courses/" class="px-3 bg-[#064b25] text-[#ffffff] py-2 w-[100%] text-[13px] hover:bg-[#ffffff] hover:border-solid hover:border-[#064b25] hover:border-[2px] hover:text-[#064b25]">Courses</a>
+                    </div>
+
+                    <div class="flex flex-row gap-2 align-center">
+                        <img src="{% static './assets/bxs-right-arrow.svg' %}" alt="">
+                        <a href="/instructor/student/management/" class="px-3 bg-[#064b25] text-[#ffffff] py-2 w-[100%] text-[13px] hover:bg-[#ffffff] hover:border-solid hover:border-[#064b25] hover:border-[2px] hover:text-[#064b25]">Registration</a>
+                    </div>
+
+                    <div class="flex flex-row gap-2 align-center">
+                        <img src="{% static './assets/bxs-right-arrow.svg' %}" alt="">
+                        <a href="/instructor/programmes/" class="px-3 bg-[#064b25] text-[#ffffff] py-2 w-[100%] text-[13px] hover:bg-[#ffffff] hover:border-solid hover:border-[#064b25] hover:border-[2px] hover:text-[#064b25]">Students</a>
+                    </div>
+
+                    <div class="flex flex-row gap-2 align-center">
+                        <img src="{% static './assets/bxs-right-arrow.svg' %}" alt="">
+                        <a href="/instructor/add_student/" class="px-3 bg-[#064b25] text-[#ffffff] py-2 w-[100%] text-[13px] hover:bg-[#ffffff] hover:border-solid hover:border-[#064b25] hover:border-[2px] hover:text-[#064b25]">Add Students</a>
+                    </div>
+                </div>
+            </div>
+        
+        
+
+            <div class="border rounded-lg p-6 shadow-md mt-[20px] w-[100%]">
+                <h1 class="text-2xl font-bold text-purple-800">Manage Students</h1>
+
+                <!-- Alerts -->
+                <div id="alert" class="hidden mb-6 p-4 rounded-lg"></div>
+
+                <!-- Tabs -->
+                <div class="mt-6">
+                    {% for message in messages %}
+                            <h5 style="color: red">{{message}}</h5>
+                    {% endfor %}
+                    <div class="flex border-b">
+                        <h3 id="bulkTab" class="px-4 py-2 text-gray-600">Bulk Upload</h3>
+                    </div>
+
+                    <!-- Individual Entry -->
+
+                    <!-- Bulk Upload -->
+                    <form method="POST" enctype="multipart/form-data"  action="/instructor/add_student/">
+                        {% csrf_token %}
+                        <div class="border-2 border-dashed rounded-lg p-6">
+                        <label for="fileUpload" class="cursor-pointer flex flex-col items-center justify-center gap-2">
+                            <span class="text-sm text-gray-500">Click to upload CSV file</span>
+                            <span class="text-xs text-gray-400">File should contain student details in CSV format.</span>
+                        </label>
+                        <input id="fileUpload" name="file" type="file" accept=".csv" class="">
+                        </div>
+                        <button id="bulkSubmit" class="mt-4 bg-purple-800 text-white px-4 py-2 rounded-lg">Upload Students</button>
+                    </form>
+                </div>
             </div>
         </div>
     </main>

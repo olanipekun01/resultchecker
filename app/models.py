@@ -63,7 +63,7 @@ class College(models.Model):
     name = models.CharField(blank=True, null=True, max_length=500)
 
     def __str__(self):
-        return self.name
+        return self.name + " " + str(self.id)
     
 class Department(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -71,7 +71,7 @@ class Department(models.Model):
     college = models.ForeignKey(College, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return self.name + " " + str(self.id)
 
 # class Programme(models.Model):
 #     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -136,9 +136,9 @@ class Student(models.Model):
     def get_registered_courses(self):
         return self.registration_set.all()
     
-    def is_transitioning_to_hnd(self):
-        # Check if the student has finished OND and is transitioning to HND
-        return self.programme.name == 'hnd' and self.previous_programme and self.previous_programme.name == 'ond'
+    # def is_transitioning_to_hnd(self):
+    #     # Check if the student has finished OND and is transitioning to HND
+    #     return self.programme.name == 'hnd' and self.previous_programme and self.previous_programme.name == 'ond'
 
 class Enrollment(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
