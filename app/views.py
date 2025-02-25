@@ -390,7 +390,7 @@ def Dashboard(request):
         if request.method == "POST":
             template = request.POST["template"]
 
-        return render(request, "user/dashboard.html")
+        return render(request, "user/dashboard.html", {'student': student})
 
 @login_required
 @user_passes_test(is_student, login_url="/404")
