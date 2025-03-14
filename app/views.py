@@ -990,6 +990,20 @@ def Contact(request):
 
         return render(request, "contact.html")
 
+@login_required
+@user_passes_test(is_student, login_url="/404")
+def Profile(request):
+    if request.user.is_authenticated:
+        user = request.user
+        student = get_object_or_404(Student, user=user)
+        level = get_object_or_404(Level, name=student.currentLevel)
+        current_session_model = Session.objects.filter(is_current=True).first()
+        current_semester_model = Semester.objects.filter(is_current=True).first()
+
+        if request.method == "POST":
+            template = request.POST["template"]
+
+        return render(request, "user/profile.html", {"student": student})
 
 @login_required
 @user_passes_test(is_student, login_url="/404")

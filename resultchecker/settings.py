@@ -11,10 +11,18 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
 import os
+
+
+# Load environment variables from .env file
+load_dotenv()
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD") 
 
 
 
@@ -83,7 +91,40 @@ DATABASES = {
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'aunc',
+#         'USER': 'postgres',
+#         'PASSWORD': POSTGRES_PASSWORD,
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
 
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'postgres',
+#         'USER': 'postgres.rttwvfjzroonsoaxigxh',
+#         'PASSWORD': 'Ma2W61ilLUPyUirP',
+#         'HOST': 'db.rttwvfjzroonsoaxigxh.supabase.co',
+#         'PORT': '5432',
+#     }
+# }
+
+
+
+
+import dj_database_url
+
+# dj_database_url.parse('postgresql://postgres:[YOUR-PASSWORD]@db.rttwvfjzroonsoaxigxh.supabase.co:5432/postgres')
+
+# DATABASES = {
+#     'default': dj_database_url.parse('postgresql://postgres:Ma2W61ilLUPyUirP@db.rttwvfjzroonsoaxigxh.supabase.co:5432/postgres')
+
+# }
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 

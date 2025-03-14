@@ -64,6 +64,8 @@ urlpatterns = [
     path('accounts/login/', views.login_view, name="login_view"),
     path('accounts/logout/', views.logout, name="logout"),
     path('accounts/changepassword/', views.changePassword, name='changepassword'),
+    path('profile/', views.Profile, name='profile'),
+
 
     # path('404', views.F404, name='f404')
 ] 
