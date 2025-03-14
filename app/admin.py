@@ -22,15 +22,25 @@ class CustomUserAdmin(UserAdmin):
     
 
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ('otherNames', 'surname', 'programme', 'previous_programme', 'matricNumber')
-    search_fields = ('otherNames', 'surname', 'matricNumber')
+    list_display = ('otherNames', 'surname', 'programme', 'matricNumber')
+    search_fields = ('otherNames', 'surname', 'matricNumber', 'primaryEmail')
+    list_filter = ['gender', 'entrySession', 'currentLevel', 'modeOfEntry', 'student_status', 'student_stream']
+
+
+class CourseAdmin(admin.ModelAdmin):
+    search_fields = ('title', 'courseCode')
+    list_filter = ['unit', 'status', 'category', 'level', 'semester']
+
+class LevelAdvisorAdmin(admin.ModelAdmin):
+    search_fields = ('name')
+    list_filter = ['department', 'level', 'department']
 
 # Register your models here.
-admin.site.register(Student)
+admin.site.register(Student, StudentAdmin)
 admin.site.register(Level)
 admin.site.register(College)
 admin.site.register(Department)
-admin.site.register(Course)
+admin.site.register(Course, CourseAdmin)
 admin.site.register(Instructor)
 admin.site.register(Registration)
 admin.site.register(Result)

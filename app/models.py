@@ -16,20 +16,10 @@ class CustomUser(AbstractUser):
         ('leveladvisor', 'LevelAdvisor')
     )
     
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    # date_joined = models.DateTimeField(auto_now_add=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     user_type = models.CharField(max_length=15, choices=USER_TYPE_CHOICES)
 
-    # groups = models.ManyToManyField(
-    #     'auth.Group',
-    #     related_name='customuser_set',  # Custom related name to avoid conflict
-    #     blank=True
-    # )
-    # user_permissions = models.ManyToManyField(
-    #     'auth.Permission',
-    #     related_name='customuser_permissions_set',  # Custom related name to avoid conflict
-    #     blank=True
-    # )
+   
 
     def __str__(self):
         return self.username
@@ -44,6 +34,7 @@ class CustomUser(AbstractUser):
         return check_password(raw_password, self.password)
 
 class Session(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     year = models.CharField(max_length=9)  # e.g., '2023/2024'
     is_current = models.BooleanField(default=False)  # Marks current active session
 
@@ -73,15 +64,7 @@ class Department(models.Model):
     def __str__(self):
         return self.name + " " + str(self.id)
 
-# class Programme(models.Model):
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     name = models.CharField(blank=True, null=True, max_length=500)
-#     department = models.ForeignKey(Department, on_delete=models.CASCADE)
-#     duration = models.IntegerField(blank=True, null=True)
-#     degree = models.CharField(blank=True, null=True, max_length=50)
 
-#     def __str__(self):
-#         return self.name
     
 class Programme(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -99,6 +82,10 @@ class Student(models.Model):
         ('inprogress', 'inprogress'),
         ('failed', 'failed'),
         ('graduated', 'graduated'),
+    )
+    STUDENTSTREAM_CJOICES = (
+        ('a', 'a'),
+        ('b', 'b'),
     )
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, primary_key=True)
     otherNames = models.CharField(blank=True, null=True, max_length=80)
@@ -126,7 +113,7 @@ class Student(models.Model):
     localGovtArea = models.CharField(blank=True, null=True, max_length=110)
     passport = models.ImageField(upload_to="images/", null=True, blank=True)
     student_status =  models.CharField(blank=True, choices=STUDENTSTATUS_CHOICES, default='inprogress', null=True, max_length=100)
-
+    student_stream = models.CharField(blank=True, choices=STUDENTSTREAM_CJOICES, default='b', null=True, max_length=100)
     
     # passport = models.ImageField(upload_to="images/")
     def __str__(self):

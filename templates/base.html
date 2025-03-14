@@ -7,6 +7,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}My Django App{% endblock %}</title>
+  <link rel="stylesheet" href="{% static "/main.css" %}">
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
@@ -23,51 +24,25 @@
   </style>
 </head>
 <body class="min-h-screen bg-white">
-  <!-- Header -->
-  <header class="sticky top-0 z-50 w-full border-b bg-[#6A32A1] text-white">
-    <div class="container mx-auto flex h-16 items-center justify-between px-4">
-      <nav id="main-nav" class="flex space-x-4">
-        <a href="/" class="text-white hover:text-blue-300">Home</a>
-        <a href="/courses/" class="text-white hover:text-blue-300">Courses</a>
-        <a href="/contact/" class="text-white hover:text-blue-300">Contact</a>
-        
-      </nav>
-      <div class="flex items-center space-x-4">
-        <button class="rounded-full p-2 hover:bg-blue-900">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </button>
-        <button class="rounded-full p-2 hover:bg-blue-900">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 01-6 0m6 0H9" />
-          </svg>
-        </button>
-        <a  href="/accounts/logout/" class="rounded-full p-2 hover:bg-blue-900">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.333 0 4 .667 4 4s-2.667 4-4 4-4-.667-4-4 .667-4 4-4zM2 12c0-5.333 1.333-8 4-8s4 2.667 4 8-1.333 8-4 8-4-2.667-4-8z" />
-          </svg>
-        </a>
-      </div>
-    </div>
-  </header>
 
   <!-- Main Content -->
   <div class="flex">
     <!-- Side Navigation -->
     
-    <aside class="w-64 bg-gray-100 p-4">
-      <div class="">
-        <img src="{% static 'assets/achievers.png' %}" alt="" class="w-[160px]" />
-      </div> 
-      <ul class="space-y-4">
-        <li><a href="/" class="block p-2 rounded hover:bg-blue-200">Dashboard</a></li>
-        <li><a href="/courses/" class="block p-2 rounded hover:bg-blue-200">Courses</a></li>
-        <li><a href="/result/filter/" class="block p-2 rounded hover:bg-blue-200">Result</a></li>
-        <li><a href="/accounts/changepassword/" class="block p-2 rounded hover:bg-blue-200">Change Password</a></li>
-        <!-- <li><a href="#" class="block p-2 rounded hover:bg-blue-200">Settings</a></li> -->
+    <aside class="hidden md:block max-w-[256px] w-full bg-white border-r p-4">
+      <section class="flex flex-row gap-2 items-center">
+        <img src="{% static "/assets/achievers.png" %}" width="48" height="48" class="object-cover cursor-pointer" />
+        <h2 class="text-xl font-bold">University Portal</h2>
+      </section>
+      <ul class="mt-4 space-y-2">
+          <li><a href="/" class="flex items-center gap-2 p-2 hover:bg-gray-200 rounded">🏠 Home</a></li>
+          <li><a href="/courses" class="flex items-center gap-2 p-2 hover:bg-gray-200 rounded">📚 Courses</a></li>
+          <!-- <li><a href="/timetable" class="flex items-center gap-2 p-2 hover:bg-gray-200 rounded">📅 Timetable</a></li> -->
+          <!-- <li><a href="/announcements" class="flex items-center gap-2 p-2 hover:bg-gray-200 rounded">📅 Announcements</a></li> -->
+          <li><a href="/result/filter" class="flex items-center gap-2 p-2 hover:bg-gray-200 rounded">📅 Results</a></li>
+          <!-- <li><a href="/fees" class="flex items-center gap-2 p-2 hover:bg-gray-200 rounded">📅 Fees & Reciepts</a></li> -->
       </ul>
-    </aside>
+  </aside>
 
     <!-- Main Section -->
     {% block content %}

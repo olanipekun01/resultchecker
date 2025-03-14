@@ -388,21 +388,21 @@
                                             </div>
                                             <p class="mt-3 text-[10px]"><span class="text-12px font-bold">Title: </span>{{reg.course.title}}</p>
                                             
-                                            {% comment %} <div class="mt-3 flex flex-row justify-between items-center">
+                                            <div class="mt-3 flex flex-row justify-between items-center">
                                                 {% if reg.session == curr_sess and reg.semester == curr_semes %}
-                                                <button onclick="handleGradeUpdateModal('{{reg.id}}', '{{reg.course.title}}', '{{reg.course.courseCode}}')"><img class="w-[15px]" src="{% static './assets/bx-edit.svg' %}" alt=""></button>
+                                                <button onclick=""><img class="w-[15px]" src="{% static './assets/bx-edit.svg' %}" alt=""></button>
                                                 {% endif %}
                                                 <div class="flex flex-row gap-3">
                                                     <div class="text-[12px]"><span class="font-bold">Grade:</span> <i class="">{{data.result.grade}}</i></div>
                                                     <span class="text-[12px] font-bold">{{data.result.grade_type}}</span>
                                                 </div>
-                                            </div> {% endcomment %}
+                                            </div>
 
-                                            {% comment %} <div class="mt-3 flex flex-row justify-between items-center">
+                                            <div class="mt-3 flex flex-row justify-between items-center">
                                                <span>NO of attempsts</span>
 
                                                 <span>{{data.result.attempt_number}}</span>
-                                            </div> {% endcomment %}
+                                            </div> 
 
                                             <div class="flex justify-between mt-4 text-[11px] font-bold">
                                                 {{reg.session}}

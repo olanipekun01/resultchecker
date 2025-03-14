@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-white">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 w-full border-b bg-purple-700 text-white">
+        <div class="container flex h-16 items-center justify-between px-4">
+            <span class="text-xl font-semibold">User Profile</span>
+            <div class="flex items-center space-x-4">
+                <button class="rounded-full p-2 hover:bg-purple-900">
+                    <span class="material-icons">notifications</span>
+                </button>
+                <button class="rounded-full p-2 hover:bg-purple-900">
+                    <span class="material-icons">settings</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="w-64 min-h-[calc(100vh-4rem)] border-r bg-gray-50 p-4">
+            <div class="text-center">
+                <img src="/placeholder.svg" alt="University Logo" class="mx-auto h-20 w-20">
+                <h2 class="text-lg font-semibold mt-4">USER PORTAL</h2>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="flex-1 p-6">
+            <div class="max-w-4xl mx-auto">
+                <h1 class="text-2xl font-bold text-purple-700 mb-4">My Profile</h1>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Profile Photo -->
+                    <div class="p-4 border rounded-md text-center">
+                        <img id="profileImage" src="/placeholder.svg" alt="Profile" class="rounded-full h-40 w-40 mx-auto">
+                        <input type="file" id="fileInput" class="hidden">
+                        <button id="uploadBtn" class="mt-2 px-4 py-2 bg-purple-700 text-white rounded-md">Change Photo</button>
+                    </div>
+                    
+                    <!-- User Info -->
+                    <div class="md:col-span-2 p-4 border rounded-md">
+                        <h2 class="text-xl font-semibold">Dr. Sarah Johnson</h2>
+                        <p class="text-sm text-gray-500">Level Advisor</p>
+                        <hr class="my-4">
+                        <p>Email: sarah.johnson@university.edu</p>
+                        <p>Phone: +234 812 345 6789</p>
+                        <p>Department: Computer Science</p>
+                        <p>Faculty: Science and Technology</p>
+                        <p>Joined: September 2018</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.getElementById('uploadBtn').addEventListener('click', function() {
+            document.getElementById('fileInput').click();
+        });
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profileImage').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>
