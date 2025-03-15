@@ -117,7 +117,7 @@ DATABASES = {
 
 
 
-import dj_database_url
+# import dj_database_url
 
 # dj_database_url.parse('postgresql://postgres:[YOUR-PASSWORD]@db.rttwvfjzroonsoaxigxh.supabase.co:5432/postgres')
 

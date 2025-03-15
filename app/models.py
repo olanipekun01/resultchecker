@@ -6,6 +6,7 @@ import uuid
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.timezone import now
+import os
 
 
 
@@ -34,7 +35,7 @@ class CustomUser(AbstractUser):
         return check_password(raw_password, self.password)
 
 class Session(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     year = models.CharField(max_length=9)  # e.g., '2023/2024'
     is_current = models.BooleanField(default=False)  # Marks current active session
 
@@ -75,6 +76,23 @@ class Programme(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Level(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(blank=True, null=True, max_length=80)
+    
+    def __str__(self):
+        return self.name
+
+
+def student_passport_upload(instance, filename):
+    """
+    Generate a unique filename for the student's passport image.
+    Format: student_<user_id>_<uuid>.<ext>
+    """
+    ext = filename.split('.')[-1]  # Extract file extension
+    new_filename = f"student_{instance.user.id}_{uuid.uuid4().hex}.{ext}"  # Rename with user ID & UUID
+    return os.path.join("images/", new_filename)
 
 
 class Student(models.Model):
@@ -90,7 +108,7 @@ class Student(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, primary_key=True)
     otherNames = models.CharField(blank=True, null=True, max_length=80)
     surname = models.CharField(blank=True, null=True, max_length=80)
-    currentLevel = models.CharField(blank=True, null=True, max_length=80)
+    currentLevel = models.ForeignKey(Level, on_delete=models.CASCADE, related_name='currentLevel',  null=True, default=1)
     matricNumber = models.CharField(blank=True, null=True, max_length=30)
     jambNumber = models.CharField(blank=True, null=True, max_length=30)
     dateOfBirth = models.DateField()
@@ -106,12 +124,12 @@ class Student(models.Model):
     bloodGroup = models.CharField(blank=True, null=True, max_length=20)
     genoType = models.CharField(blank=True, null=True, max_length=20)
     modeOfEntry = models.CharField(blank=True, null=True, max_length=50)
-    entryLevel = models.CharField(blank=True, null=True, max_length=50)
+    entryLevel =  models.ForeignKey(Level, on_delete=models.CASCADE,  null=True, default=1)
     degree = models.CharField(blank=True, null=True, max_length=50)
     nationality = models.CharField(blank=True, null=True, max_length=110)
     stateOfOrigin = models.CharField(blank=True, null=True, max_length=110)
     localGovtArea = models.CharField(blank=True, null=True, max_length=110)
-    passport = models.ImageField(upload_to="images/", null=True, blank=True)
+    passport = models.ImageField(upload_to="images/", default='images/placeholder.png', null=True, blank=True)
     student_status =  models.CharField(blank=True, choices=STUDENTSTATUS_CHOICES, default='inprogress', null=True, max_length=100)
     student_stream = models.CharField(blank=True, choices=STUDENTSTREAM_CJOICES, default='b', null=True, max_length=100)
     
@@ -135,12 +153,7 @@ class Enrollment(models.Model):
     def __str__(self):
         return f"{self.student} in {self.session}"
         
-class Level(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(blank=True, null=True, max_length=80)
-    
-    def __str__(self):
-        return self.name
+
     
 class Semester(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

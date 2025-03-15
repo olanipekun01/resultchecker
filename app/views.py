@@ -1000,8 +1000,18 @@ def Profile(request):
         current_session_model = Session.objects.filter(is_current=True).first()
         current_semester_model = Semester.objects.filter(is_current=True).first()
 
-        if request.method == "POST":
-            template = request.POST["template"]
+        if request.method == "POST" and request.FILES.get("passport"):
+            profilepic = request.FILES["passport"]
+
+            # Rename file to avoid spaces and special characters
+            filename = f"student_{student.user.id}.jpg"
+            filepath = f"images/{filename}"
+
+            # Save file properly
+            student.passport.save(filepath, profilepic)
+
+            student.save()
+            return redirect('/profile')
 
         return render(request, "user/profile.html", {"student": student})
 
@@ -2158,7 +2168,7 @@ def ApproveRejectReg(request, stats, id):
             return redirect("/instructor/student/management/")
     return render(request, "admin/student_dashboard.html")
 
-    # def login_view(request):
+def login_view(request):
     if request.method == "POST":
         email = request.POST["email"]
         password = request.POST["password"]
@@ -2205,40 +2215,41 @@ from django.contrib import messages, auth
 from app.models import CustomUser  # Ensure you import your CustomUser model
 
 
-def login_view(request):
-    if request.method == "POST":
-        email = request.POST.get("email")
-        password = request.POST.get("password")
+# def login_view(request):
+#     if request.method == "POST":
+#         email = request.POST.get("email")
+#         password = request.POST.get("password")
 
-        try:
-            # Check if the user exists
-            user = CustomUser.objects.filter(email=email).first()
-            if user is None:
-                messages.error(request, "Invalid credentials!")
-                return render(request, "authentication/login.html")
+#         try:
+#             # Check if the user exists
+#             user = CustomUser.objects.filter(email=email).first()
+#             if user is None:
+#                 print('im here')
+#                 messages.error(request, "Invalid credentials!")
+#                 return render(request, "authentication/login.html")
 
-            # Authenticate using the email field instead of username
-            user = auth.authenticate(request, username=user.username, password=password)
+#             # Authenticate using the email field instead of username
+#             user = auth.authenticate(request, username=user.username, password=password)
 
-            if user is not None:
-                auth.login(request, user)
+#             if user is not None:
+#                 auth.login(request, user)
 
-                # Redirect based on user type
-                if user.user_type == "student":
-                    return redirect("/")
-                elif user.user_type == "instructor":
-                    return redirect("/instructor/dashboard")
-                else:
-                    return redirect("/404")
-            else:
-                messages.error(request, "Invalid credentials!")
-                return render(request, "authentication/login.html")
+#                 # Redirect based on user type
+#                 if user.user_type == "student":
+#                     return redirect("/")
+#                 elif user.user_type == "instructor":
+#                     return redirect("/instructor/dashboard")
+#                 else:
+#                     return redirect("/404")
+#             else:
+#                 messages.error(request, "Invalid credentials!")
+#                 return render(request, "authentication/login.html")
 
-        except Exception as e:
-            messages.error(request, f"An error occurred: {str(e)}")
-            return render(request, "authentication/login.html")
+#         except Exception as e:
+#             messages.error(request, f"An error occurred: {str(e)}")
+#             return render(request, "authentication/login.html")
 
-    return render(request, "authentication/login.html")
+#     return render(request, "authentication/login.html")
 
 
 @login_required
