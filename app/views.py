@@ -2188,6 +2188,8 @@ def login_view(request):
                     return redirect("/")
                 elif user.user_type == "instructor":
                     return redirect("/instructor/dashboard")
+                elif user.user_type == "leveladvisor":
+                    return redirect("/advisor/dashboard")
                 else:
                     # Redirect user to a 404 page
                     return redirect("/404")
