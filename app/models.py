@@ -180,7 +180,7 @@ class Course(models.Model):
     CATEGORY_CHOICES = (
         ('nursing course', 'NC'),
         ('life science', 'LS'),
-        ('non nursing course', 'NNC'),
+        ('non-nursing course', 'NNC'),
     )
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(blank=True, null=True, max_length=500)
@@ -200,10 +200,9 @@ class Course(models.Model):
 class Instructor(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, primary_key=True)
     name = models.CharField(blank=True, null=True, max_length=500)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
     phoneNumber = models.CharField(blank=True, null=True, max_length=15)
     departmental_email = models.CharField(blank=True, null=True, max_length=90)
-    passport = models.ImageField(upload_to="images/", null=True, blank=True)
+    passport = models.ImageField(upload_to="images/", default='images/placeholder.png', null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -213,7 +212,7 @@ class LevelAdvisor(models.Model):
     name = models.CharField(blank=True, null=True, max_length=500)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     level = models.ForeignKey(Level, on_delete=models.CASCADE)
-    passport = models.ImageField(upload_to="images/", null=True, blank=True)
+    passport = models.ImageField(upload_to="images/", default='images/placeholder.png', null=True, blank=True)
 
     def __str__(self):
         return f'Level Advisor - {self.level.name} -{self.name}'

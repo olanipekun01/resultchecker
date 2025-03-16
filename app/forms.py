@@ -30,4 +30,4 @@ class StudentSignupForm(forms.ModelForm):
 class InstructorSignupForm(forms.ModelForm):
     class Meta:
         model = Instructor
-        fields = ['name', 'department', 'phoneNumber']
+        fields = ['name', 'phoneNumber']

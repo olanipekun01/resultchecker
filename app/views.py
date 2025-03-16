@@ -1060,9 +1060,9 @@ def adminDashboard(request):
         user = request.user
         instructor = get_object_or_404(Instructor, user=user)
         countProgrammes = len(
-            Programme.objects.filter(department=instructor.department)
+            Programme.objects.all()
         )
-        countCourses = len(Course.objects.filter(department=instructor.department))
+        countCourses = len(Course.objects.all())
 
     return render(
         request,
