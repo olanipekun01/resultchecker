@@ -26,7 +26,7 @@ class Command(BaseCommand):
                 required_columns = {
                     'surname', 'otherNames', 'matricNumber', 
                     'dateOfBirth', 'gender', 'currentLevel', 'department', 
-                    'programme', 'currentSession'
+                    'programme', 'currentSession', 'entrySession'
                 }
                 if not all(col in reader.fieldnames for col in required_columns):
                     missing = required_columns - set(reader.fieldnames)
@@ -39,73 +39,72 @@ class Command(BaseCommand):
                 for row in reader:
                     try:
                         # Create CustomUser first
-                        user = CustomUser(
-                            id=uuid.uuid4(),
-                            username=row['primaryEmail'],
-                            user_type='student'
+                        # Check if username already exists, if so, make it unique
+                     
+                        user, created = CustomUser.objects.get_or_create(
+                            email=row["primaryEmail"].strip(),
+                            defaults={
+                                "username": row["primaryEmail"].strip(),
+                                "first_name": row["otherNames"].strip(),
+                                "last_name": row["surname"].strip(),
+                                "user_type": "student",
+                            },
                         )
+
+                        # user = CustomUser(
+                        #     id=uuid.uuid4(),
+                        #     username=row['primaryEmail'],
+                        #     user_type='student'
+                        # )
                         # Set a default password (e.g., matric number)
                         user.set_password(row['matricNumber'])
                         user.save()
 
                         # Get related objects
-                        current_level = Level.objects.get(name=row['currentLevel'])  # or name=
-                        department = Department.objects.get(name=row['department'])  # or name=
-                        programme = Programme.objects.get(name=row['programme'])  # or name=
+                        current_level = Level.objects.get(name=row['currentLevel'].strip())  # or name=
+                        department = Department.objects.get(name=row['department'].strip())  # or name=
+                        programme = Programme.objects.get(name=row['programme'].strip())  # or name=
 
                         # Parse date of birth (assuming format: YYYY-MM-DD)
-                        dob = datetime.strptime(row['dateOfBirth'], '%Y-%m-%d').date()
-
+                        dob = datetime.strptime(row['dateOfBirth'].strip(), '%Y-%m-%d').date()
+                        dob = datetime.strptime(
+                                    row["dateOfBirth"], "%d/%m/%Y"
+                                ).strftime("%Y-%m-%d")
+                        
                         # Create Student
                         student = Student(
                             user=user,
-                            surname=row['surname'],
-                            otherNames=row['otherNames'],
+                            surname=row['surname'].strip(),
+                            otherNames=row['otherNames'].strip(),
                             currentLevel=current_level,
-                            matricNumber=row['matricNumber'],
-                            jambNumber=row.get('jambNumber', None),
+                            matricNumber=row['matricNumber'].strip(),
+                            jambNumber=row.get('jambNumber', None).strip(),
                             dateOfBirth=dob,
-                            gender=row['gender'],
-                            studentPhoneNumber=row.get('studentPhoneNumber', None),
+                            gender=row['gender'].strip(),
+                            studentPhoneNumber=row.get('studentPhoneNumber', None).strip(),
                             department=department,
                             programme=programme,
-                            currentSession=row['currentSession'],
-                            primaryEmail=row.get('primaryEmail', None),
-                            studentEmail=row.get('studentEmail', None),
-                            bloodGroup=row.get('bloodGroup', None),
-                            genoType=row.get('genoType', None),
-                            modeOfEntry=row.get('modeOfEntry', None),
-                            entryLevel=Level.objects.get(name=row.get('entryLevel', row['currentLevel'])),
-                            degree=row.get('degree', None),
+                            currentSession=row['currentSession'].strip(),
+                            entrySession=row['entrySession'].strip(),
+                            primaryEmail=row.get('primaryEmail', None).strip(),
+                            studentEmail=row.get('studentEmail', None).strip(),
+                            bloodGroup=row.get('bloodGroup', None).strip(),
+                            genoType=row.get('genoType', None).strip(),
+                            modeOfEntry=row.get('modeOfEntry', None).strip(),
+                            entryLevel=Level.objects.get(name=row.get('entryLevel', row['currentLevel']).strip()),
+                            degree=row.get('degree', None).strip(),
                             nationality=row.get('nationality', None),
-                            stateOfOrigin=row.get('stateOfOrigin', None),
-                            localGovtArea=row.get('localGovtArea', None),
-                            student_status=row.get('student_status', 'inprogress'),
-                            student_stream=row.get('student_stream', 'b')
+                            stateOfOrigin=row.get('stateOfOrigin', None).strip(),
+                            localGovtArea=row.get('localGovtArea', None).strip(),
                         )
 
                         # Handle college if provided
                         if 'college' in row and row['college']:
-                            student.college = College.objects.get(name=row['college of nursing akure'])
+                            student.college = College.objects.get(name='college of nursing akure')
 
                        
 
                         student.save()
-
-                        # Handle entrySession if provided (comma-separated session IDs)
-                        if 'entrySession' in row and row['entrySession']:
-                            sessions = row['entrySession'].split(',')
-                            for session_id in sessions:
-                                try:
-                                    session = Session.objects.get(year=session_id.strip())
-                                    Enrollment.objects.create(
-                                        student=student,
-                                        session=session
-                                    )
-                                except Session.DoesNotExist:
-                                    self.stdout.write(self.style.WARNING(
-                                        f"Session {session_id} not found for {student.matricNumber}"
-                                    ))
 
                         success_count += 1
                         self.stdout.write(self.style.SUCCESS(

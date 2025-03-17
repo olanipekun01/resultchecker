@@ -101,9 +101,14 @@ class Student(models.Model):
         ('failed', 'failed'),
         ('graduated', 'graduated'),
     )
-    STUDENTSTREAM_CJOICES = (
+    STUDENTSTREAM_CHOICES = (
         ('a', 'a'),
         ('b', 'b'),
+    )
+
+    GENDER_CHOICES = (
+        ('female', 'female'),
+        ('male', 'male'),
     )
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, primary_key=True)
     otherNames = models.CharField(blank=True, null=True, max_length=80)
@@ -112,12 +117,12 @@ class Student(models.Model):
     matricNumber = models.CharField(blank=True, null=True, max_length=30)
     jambNumber = models.CharField(blank=True, null=True, max_length=30)
     dateOfBirth = models.DateField()
-    gender = models.CharField(blank=True, null=True, max_length=15)
+    gender = models.CharField(blank=True, choices=GENDER_CHOICES, null=True, max_length=15)
     studentPhoneNumber = models.CharField(blank=True, null=True, max_length=15)
     college = models.ForeignKey(College, on_delete=models.CASCADE,  null=True, default=None)
     department = models.ForeignKey(Department, on_delete=models.CASCADE,  null=True, default=None)
     programme = models.ForeignKey(Programme, on_delete=models.CASCADE, related_name='students', blank=True, null=True)
-    entrySession = models.ManyToManyField(Session, through='Enrollment', related_name='entrySession', null=True, default=None)
+    entrySession = models.CharField(blank=True, null=True, max_length=20)
     currentSession = models.CharField(blank=True, null=True, max_length=20)
     primaryEmail = models.CharField(blank=True, null=True, max_length=120)
     studentEmail = models.CharField(blank=True, null=True, max_length=120)
@@ -131,7 +136,7 @@ class Student(models.Model):
     localGovtArea = models.CharField(blank=True, null=True, max_length=110)
     passport = models.ImageField(upload_to="images/", default='images/placeholder.png', null=True, blank=True)
     student_status =  models.CharField(blank=True, choices=STUDENTSTATUS_CHOICES, default='inprogress', null=True, max_length=100)
-    student_stream = models.CharField(blank=True, choices=STUDENTSTREAM_CJOICES, default='b', null=True, max_length=100)
+    student_stream = models.CharField(blank=True, choices=STUDENTSTREAM_CHOICES, default='b', null=True, max_length=100)
     
     # passport = models.ImageField(upload_to="images/")
     def __str__(self):

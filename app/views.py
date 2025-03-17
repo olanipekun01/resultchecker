@@ -1070,7 +1070,7 @@ def adminDashboard(request):
         {
             "countProgrammes": countProgrammes,
             "countCourses": countCourses,
-            "department": instructor.department,
+            "department": "ACONSA INSTRUCTOR",
         },
     )
 
@@ -1082,9 +1082,9 @@ def adminProgrammeManagement(request):
 
         user = request.user
         instructor = get_object_or_404(Instructor, user=user)
-        # programmes = Programme.objects.filter(department=instructor.department)
+        # programmes = Programme.objects.filter(department='ACONSA Instructor')
         programmes = Programme.objects.all()
-        # countCourses = len(Course.objects.filter(department=instructor.department))
+        # countCourses = len(Course.objects.filter(department='ACONSA Instructor'))
         if request.method == "POST":
             programme_name = request.POST["programme_name"]
             programme_duration = request.POST["programme_duration"]
@@ -1122,7 +1122,7 @@ def adminProgrammeManagement(request):
             "admin/admin_program_management.html",
             {
                 "programmes": programmes,
-                "department": instructor.department,
+                "department": "ACONSA Instructor",
                 "allDepts": Department.objects.all(),
             },
         )
@@ -1238,9 +1238,9 @@ def adminDepartmentManagement(request):
 
         user = request.user
         instructor = get_object_or_404(Instructor, user=user)
-        # programmes = Programme.objects.filter(department=instructor.department)
+        # programmes = Programme.objects.filter(department='ACONSA Instructor')
         departments = Department.objects.all()
-        # countCourses = len(Course.objects.filter(department=instructor.department))
+        # countCourses = len(Course.objects.filter(department='ACONSA Instructor'))
         if request.method == "POST":
             dept_name = request.POST["department_name"]
 
@@ -1393,7 +1393,7 @@ def adminCourseManagement(request, dept):
     if request.user.is_authenticated:
         user = request.user
         instructor = get_object_or_404(Instructor, user=user)
-        # courses = Course.objects.all().filter(department=instructor.department)
+        # courses = Course.objects.all().filter(department='ACONSA Instructor')
         courses = [
             {
                 "id": str(course.id),
@@ -1453,7 +1453,7 @@ def adminCourseManagement(request, dept):
             courseObjects = Course.objects.create(
                 title=course_title,
                 courseCode=course_code,
-                department=instructor.department,
+                department='ACONSA Instructor',
                 unit=course_unit,
                 category=course_cat,
                 status=course_status,
@@ -1479,7 +1479,7 @@ def adminCourseManagement(request, dept):
             "courses": courses,
             "courseLevels": course_levels,
             "programme": programmes,
-            "department": instructor.department,
+            "department": "ACONSA Instructor",
             "deptid": dept,
         },
     )
@@ -1568,7 +1568,7 @@ def eachCourse(request, id):
         instructor = get_object_or_404(Instructor, user=user)
         session = Session.objects.all()
         course = (
-            Course.objects.all().filter(department=instructor.department, id=id).first()
+            Course.objects.all().filter(id=id).first()
         )
         if request.method == "POST":
             sess = request.POST["session"]
@@ -1589,7 +1589,7 @@ def eachCourse(request, id):
                     "admin/each_course.html",
                     {
                         "course": course,
-                        "department": instructor.department,
+                        "department": "ACONSA Instructor",
                         "session": session,
                         "registered_student": register,
                         "down_sess": sess,
@@ -1603,7 +1603,7 @@ def eachCourse(request, id):
     return render(
         request,
         "admin/each_course.html",
-        {"course": course, "department": instructor.department, "session": session},
+        {"course": course, "department": 'ACONSA instructor', "session": session},
     )
 
 
@@ -1800,7 +1800,7 @@ def registeredStudentSearchDashboard(request):
     return render(
         request,
         "admin/student_management_search.html",
-        {"department": instructor.department, "session": session},
+        {"department": "ACONSA Instructor", "session": session},
     )
 
 
@@ -1818,7 +1818,6 @@ def registeredStuManagementDashboard(request):
                 try:
                     student = Student.objects.all().filter(
                         Q(matricNumber=matricNo) | Q(jambNumber=matricNo),
-                        department=instructor.department,
                     )
                     if student.exists():
                         stu = student.first()
@@ -1837,7 +1836,7 @@ def registeredStuManagementDashboard(request):
                             request,
                             "admin/student_dashboard.html",
                             {
-                                "department": instructor.department,
+                                "department": 'ACONSA Instructor',
                                 "student": stu,
                                 "registers": registers,
                             },
@@ -1851,7 +1850,7 @@ def registeredStuManagementDashboard(request):
     return render(
         request,
         "admin/student_dashboard.html",
-        {"department": instructor.department, "curr_sess": current_session},
+        {"department": "ACONSA Instructor", "curr_sess": current_session},
     )
 
 
@@ -1876,7 +1875,6 @@ def registeredStudentManagementDashboard(request):
                         Student.objects.all()
                         .filter(
                             Q(matricNumber=matricNo) | Q(jambNumber=matricNo),
-                            department=instructor.department,
                         )
                         .first()
                     )
@@ -1949,7 +1947,7 @@ def registeredStudentManagementDashboard(request):
                             request,
                             "admin/student_dashboard.html",
                             {
-                                "department": instructor.department,
+                                "department": "ACONSA Instructor",
                                 "curr_sess": current_session,
                                 "curr_semes": current_semester,
                                 "student": student,
@@ -1971,7 +1969,7 @@ def registeredStudentManagementDashboard(request):
         request,
         "admin/student_dashboard.html",
         {
-            "department": instructor.department,
+            "department": "ACONSA Instructor",
             "curr_sess": current_session,
             "curr_semes": current_semester,
         },
@@ -2065,7 +2063,7 @@ def addCourseStudentRegisteredCourse(request, matricNo):
                 Student.objects.all()
                 .filter(
                     Q(matricNumber=matricNo) | Q(jambNumber=matricNo),
-                    department=instructor.department,
+                    department='ACONSA Instructor',
                 )
                 .first()
             )
@@ -2172,7 +2170,7 @@ def login_view(request):
     if request.method == "POST":
         email = request.POST["email"]
         password = request.POST["password"]
-
+        
         try:
             user = auth.authenticate(username=email, password=password)
             # user = User.objects.get(email=email)
@@ -2313,10 +2311,11 @@ def manageAddStudent(request):
                     for _, row in df.iterrows():
                         # Fetch related foreign key objects
                         print("row", row)
-                        college = College.objects.get(name=row["college"])
+                        college = College.objects.get(name=row['college'])
                         department = Department.objects.get(name=row["department"])
                         programme = Programme.objects.get(name=row["programme"])
-                        session = Session.objects.get(year=row["currentSession"])
+                        # print('session', row["currentSession"])
+                        # session = Session.objects.get(year=row["currentSession"])
 
                         print(
                             "date",
@@ -2346,8 +2345,8 @@ def manageAddStudent(request):
                             defaults={
                                 "otherNames": row["otherNames"],
                                 "surname": row["surname"],
-                                "currentLevel": row["currentLevel"],
-                                "entryLevel": row["entryLevel"],
+                                "currentLevel": Level.objects.get(name=row["currentLevel"]),
+                                "entryLevel": Level.objects.get(name=row["entryLevel"]),
                                 "currentSession": current_session_model.year,
                                 "matricNumber": row["matricNumber"],
                                 "jambNumber": row["jambNumber"],
