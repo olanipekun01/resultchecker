@@ -2326,7 +2326,7 @@ def manageAddStudent(request):
                         )
 
                         # Create a CustomUser (assuming email is primary key)
-                        user, created = CustomUser.objects.get_or_create(
+                        user, created = CustomUser.objects.update_or_create(
                             email=row["primaryEmail"],
                             defaults={
                                 "username": row["primaryEmail"],
@@ -2362,6 +2362,7 @@ def manageAddStudent(request):
                                 "degree": row["degree"],
                                 "modeOfEntry": row["modeOfEntry"],
                                 "studentEmail": row["studentEmail"],
+                                "entrySession": row["entrySession"],
                             },
                         )
 
@@ -2816,3 +2817,195 @@ def get_latest_failed_or_pending_courses(student):
     )
 
     return filtered_courses
+
+
+
+
+
+
+
+# Parent views 
+
+
+def ParentResultFilter(request):
+    if request.user.is_authenticated:
+        user = request.user
+        
+
+
+        # Get the earliest session the student was enrolled in
+        earliest_session = Session.objects.all()
+
+        
+        # Get all sessions from the earliest session onward
+       
+
+        if request.method == "POST":
+            print(request.POST)
+            matricNumber = request.POST["matricNum"]
+            sess = request.POST["session-select"]
+            semes = request.POST["semester-select"]
+
+            session = get_object_or_404(Session, year=sess)
+            semester = get_object_or_404(Semester, name=semes)
+
+            registration = Result.objects.filter(
+                registration__student=Student.objects.get(matricNumber=matricNumber.strip().lower()),
+                registration__session=session,
+                registration__semester=semester,
+            )
+
+            if registration.exists():
+                # Get all attempts sorted by attempt date (latest first)
+                attempts = registration.order_by("result_date")
+                latest_attempt = attempts.first()
+
+                # latest_attempt = Result.objects.filter(
+                #     registration__student=student, registration__session=session, registration__semester=semester
+                # ).values('registration_id').annotate(
+                #     highest_attempt=Max('attempt_number')
+                # )
+
+                latest_attempt = (
+                    Result.objects.filter(registration_id=OuterRef("registration_id"))
+                    .values("registration_id")
+                    .annotate(highest_attempt=Max("attempt_number"))
+                    .values("highest_attempt")
+                )
+
+                latest_results = Result.objects.filter(
+                    attempt_number=Subquery(latest_attempt),
+                    registration__student=Student.objects.get(matricNumber=matricNumber.lower().strip()),  # Ensure it is for the specific student
+                )
+
+              
+                # Calculate total credit units
+                total_credit_units = sum(
+                    course.registration.course.unit for course in attempts
+                )
+
+                # Calculate total points
+                total_points = sum(course.total_point for course in attempts)
+
+                # Calculate GPA
+                gpa = total_points / total_credit_units if total_credit_units > 0 else 0
+
+                return render(
+                    request,
+                    "parents/resultview.html",
+                    {
+                        "status": "success",
+                        "latest_attempt": latest_attempt,
+                        "all_attempts": attempts,
+                        "results": latest_results,
+                        "total_credit_units": total_credit_units,
+                        "total_points": total_points,
+                        "gpa": round(gpa, 2),
+                        "total_course": len(attempts),
+                        "session": session.year,
+                        "semester": semester.name,
+                    },
+                )
+            else:
+                if not Result.objects.filter(
+                    registration__session=session, registration__semester=semester
+                ).exists():
+                    messages.error(
+                        request,
+                        "Results have not been uploaded yet for this session and semester.",
+                    )
+                    return redirect("/result/filter")
+                else:
+                    messages.error(
+                        request,
+                        "No results found for this student in the selected session and semester.",
+                    )
+                    return redirect("/result/filter")
+
+        return render(
+            request, "user/results-new.html", {}
+        )
+
+
+def ResultView(request):
+    if request.user.is_authenticated:
+        user = request.user
+        student = get_object_or_404(Student, user=user)
+
+        level = get_object_or_404(Level, name=student.currentLevel)
+        current_session_model = Session.objects.filter(is_current=True).first()
+        current_semester_model = Semester.objects.filter(is_current=True).first()
+
+        if request.method == "POST":
+            template = request.POST["template"]
+
+        return render(request, "user/resultview.html")
+
+
+
+def ParentResultView(request):
+    if request.user.is_authenticated:
+        user = request.user
+        student = get_object_or_404(Student, user=user)
+
+        level = get_object_or_404(Level, name=student.currentLevel)
+        current_session_model = Session.objects.filter(is_current=True).first()
+        current_semester_model = Semester.objects.filter(is_current=True).first()
+
+        if request.method == "POST":
+            sess = request.POST["sess"]
+            semes = request.POST["semes"]
+            session = get_object_or_404(Session, year=sess)
+            semester = get_object_or_404(Semester, name=semes)
+
+            registration = Result.objects.filter(
+                registration__student=student,
+                registration__session=session,
+                registration__semester=semester,
+            )
+
+            if registration.exists():
+                # Get all attempts sorted by attempt date (latest first)
+                print("reg i", registration)
+                attempts = registration.order_by("result_date")
+                print("reg ii", attempts)
+                latest_attempt = attempts.first()
+
+                # Calculate total credit units
+                total_credit_units = sum(
+                    course.registration.course.unit for course in attempts
+                )
+
+                # Calculate total points
+                total_points = sum(course.total_point for course in attempts)
+
+                # Calculate GPA
+                gpa = total_points / total_credit_units if total_credit_units > 0 else 0
+
+                reg_courses = Registration.objects.filter(
+                    student=student,
+                    semester=get_object_or_404(Semester, name=semes),
+                    session=get_object_or_404(Session, year=sess),
+                )
+
+                confirmReg = confirmRegister.objects.filter(
+                    student=student,
+                    semester=get_object_or_404(Semester, name=semes),
+                    session=get_object_or_404(Session, year=sess),
+                ).first()
+
+                gen = generate_pdf(attempts, student, sess, semes, confirmReg, gpa)
+
+                gen.output("fpdfdemo.pdf", "F")
+
+                response = HttpResponse(
+                    gen.output(dest="S").encode("latin1"),
+                    content_type="application/pdf",
+                )
+                # response['Content-Disposition'] = 'attachment; filename="fpdfdemo.pdf"'
+
+                response["Content-Disposition"] = 'inline; filename="preview.pdf"'
+                return response
+
+        return render(request, "user/resultfilter.html")
+

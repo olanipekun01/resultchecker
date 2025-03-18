@@ -66,6 +66,10 @@ urlpatterns = [
     path('accounts/changepassword/', views.changePassword, name='changepassword'),
     path('profile/', views.Profile, name='profile'),
 
+    path('check/result/filter/', views.ParentResultFilter, name="parentresultfilter"),
+    path('check/result/view/', views.ParentResultView, name="parentresultview"),
+
+
 
     # path('404', views.F404, name='f404')
 ] 
