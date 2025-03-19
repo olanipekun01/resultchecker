@@ -153,19 +153,19 @@ def generate_pdf(reg_course, student, session, semester, confirmReg, gpa):
 
     pdf.set_font("times", "B", 6)
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(129, 4, f"Printed on: Monday 14th October 2024 || 12:06PM")
+    pdf.cell(129, 4, f"Printed on: {datetime.now()}")
 
     pdf.set_font("times", "B", 10)
     pdf.set_text_color(0, 0, 0)
     pdf.cell(
         0,
         4,
-        f" {confirmReg.session.year} || {confirmReg.semester.name} SEMESTER",
+        f" {confirmReg.session.year} || {confirmReg.semester.name.upper()} SEMESTER",
         ln=True,
     )
 
     pdf.set_font("times", "B", 10)
-    pdf.set_fill_color(6, 75, 37)
+    pdf.set_fill_color(118, 43, 102)
     pdf.set_text_color(255, 255, 255)
     pdf.cell(
         180, 7, f"   :. Students' Personal Information", ln=True, fill=True, align="L"
@@ -177,34 +177,34 @@ def generate_pdf(reg_course, student, session, semester, confirmReg, gpa):
     pdf.set_text_color(0, 0, 0)
     pdf.cell(60, 7, f"FUll NAME:")
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(0, 7, f"{student.surname}, {student.otherNames}", ln=True)
+    pdf.cell(0, 7, f"{student.surname.upper()}, {student.otherNames.upper()}", ln=True)
     pdf.set_text_color(0, 0, 0)
     pdf.cell(60, 7, f"MATRIC NO / JAMB NO:")
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(0, 7, f"{student.matricNumber} [{student.jambNumber}]", ln=True)
+    pdf.cell(0, 7, f"{student.matricNumber.upper()} [{student.jambNumber.upper()}]", ln=True)
     pdf.set_text_color(0, 0, 0)
     pdf.cell(60, 7, f"FACULTY / COLLEGE:")
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(0, 7, f"{student.college}", ln=True)
+    pdf.cell(0, 7, f"{student.college.name.upper()}", ln=True)
     pdf.set_text_color(0, 0, 0)
     pdf.cell(60, 7, f"PROGRAMME:")
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(0, 7, f"{student.programme}", ln=True)
+    pdf.cell(0, 7, f"{student.programme.name.upper()}", ln=True)
     pdf.set_text_color(0, 0, 0)
     pdf.cell(60, 7, f"DEGREE:")
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(0, 7, f"{student.degree} {student.programme}", ln=True)
+    pdf.cell(0, 7, f"{student.degree.upper()} {student.programme.name.upper()}", ln=True)
     pdf.set_text_color(0, 0, 0)
     pdf.cell(60, 7, f"EMAIL / PHONE NO:")
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(0, 7, f"{student.studentEmail} || {student.studentPhoneNumber}", ln=True)
+    pdf.cell(0, 7, f"{student.primaryEmail} || {student.studentPhoneNumber}", ln=True)
     pdf.set_text_color(0, 0, 0)
     pdf.cell(60, 7, f"LEVEL:")
     pdf.set_text_color(0, 0, 0)
     pdf.cell(
         0,
         7,
-        f"{confirmReg.level.name}",
+        f"{confirmReg.level.name.upper()}",
     )
 
     if student.passport:
@@ -240,11 +240,11 @@ def generate_pdf(reg_course, student, session, semester, confirmReg, gpa):
     pdf.cell(15, 4, f"Grade", border=1)
     pdf.ln()
     for co in reg_course:
-        pdf.cell(25, 4, f"{co.registration.course.courseCode}", border=1)
-        pdf.cell(100, 4, f"{co.registration.course.title}", border=1)
+        pdf.cell(25, 4, f"{co.registration.course.courseCode.upper()}", border=1)
+        pdf.cell(100, 4, f"{co.registration.course.title.upper()}", border=1)
         pdf.cell(15, 4, f"{co.registration.course.unit}", border=1)
         pdf.cell(15, 4, f"{co.grade}", border=1)
-        pdf.cell(15, 4, f"{co.grade_type}", border=1)
+        pdf.cell(15, 4, f"{co.grade_type.upper()}", border=1)
 
         pdf.ln()
         unit += co.registration.course.unit
@@ -257,72 +257,14 @@ def generate_pdf(reg_course, student, session, semester, confirmReg, gpa):
     pdf.cell(15, 4, f"{gpa}", border=1)
     pdf.ln()
 
-    pdf.set_font("helvetica", "BIU", 16)
-    pdf.set_font("times", "", 9)
-    pdf.set_text_color(0, 0, 0)
-    pdf.cell(0, 7, f"Key: C=Core, E=Elective, R=Required", ln=True)
+    # pdf.set_font("helvetica", "BIU", 16)
+    # pdf.set_font("times", "", 9)
+    # pdf.set_text_color(0, 0, 0)
+    # pdf.cell(0, 7, f"Key: C=Core, E=Elective, R=Required", ln=True)
 
-    pdf.ln(4)
+    # pdf.ln(4)
 
-    pdf.set_font("helvetica", "BIU", 16)
-    pdf.set_font("times", "", 7)
-    pdf.set_text_color(0, 0, 0)
-    pdf.cell(145, 7, f"Signature of Student: _____________________________________")
-    pdf.cell(0, 7, f"Date: __________________________", ln=True)
-
-    pdf.set_font("times", "B", 10)
-    pdf.set_text_color(0, 0, 0)
-    pdf.cell(180, 7, f"FOR OFFICIAL USE ONLY", align="C", ln=True)
-
-    pdf.set_font("times", "B", 6)
-    pdf.set_text_color(255, 0, 0)
-    pdf.cell(
-        180,
-        2,
-        f"I certify that the above named student has submitted four(4) copies of his/her first semester course registration form and he/she is qualified to register the above listed courses",
-        align="C",
-        ln=True,
-    )
-
-    pdf.ln(6)
-
-    pdf.set_font("helvetica", "BIU", 16)
-    pdf.set_font("times", "", 7)
-    pdf.set_text_color(0, 0, 0)
-    pdf.cell(145, 7, f"Signature of Academic Advisor: ____________________________")
-    pdf.cell(0, 7, f"Date: __________________________", ln=True)
-    pdf.ln(6)
-
-    pdf.set_font("helvetica", "BIU", 16)
-    pdf.set_font("times", "", 7)
-    pdf.set_text_color(0, 0, 0)
-    pdf.cell(145, 7, f"Signature of H.O.D.: _____________________________________")
-    pdf.cell(0, 7, f"Date: __________________________", ln=True)
-    pdf.ln(6)
-
-    pdf.set_font("helvetica", "BIU", 16)
-    pdf.set_font("times", "", 7)
-    pdf.set_text_color(0, 0, 0)
-    pdf.cell(145, 7, f"Signature of DEAN: _____________________________________")
-    pdf.cell(0, 7, f"Date: __________________________", ln=True)
-
-    pdf.ln(3)
-
-    pdf.set_font("times", "B", 6)
-    pdf.set_text_color(255, 0, 0)
-    pdf.cell(
-        180,
-        2,
-        f"Note:This form should be printed and returned to the Examination Officer at least Four weeks before the commencement of the examinations.",
-        align="C",
-        ln=True,
-    )
-    pdf.cell(
-        180,
-        2,
-        f"No Candidate shall be allowed to write any \nexamination in any course unless he/she has satisfied appropriate registration & finanacial regulations.",
-        align="C",
-    )
+    
 
     return pdf
     # for i in range (1, 41):
@@ -2323,7 +2265,7 @@ def manageAddStudent(request):
 
                         # Create a CustomUser (assuming email is primary key)
                         user, created = CustomUser.objects.update_or_create(
-                            email=row["primaryEmail"],
+                            email=row["primaryEmail"].strip(),
                             defaults={
                                 "username": row["primaryEmail"],
                                 "first_name": row["otherNames"],
@@ -2359,7 +2301,7 @@ def manageAddStudent(request):
                                 "modeOfEntry": row["modeOfEntry"],
                                 "studentEmail": row["studentEmail"],
                                 "entrySession": row["entrySession"],
-                                "student_stream": "a"
+                                "student_stream": "b",
                             },
                         )
 
@@ -2875,8 +2817,11 @@ def ParentResultFilter(request):
             )
 
             # Calculate total points
-            total_points = sum(course.total_point for course in attempts)
-
+            try:
+                total_points = sum(course.total_point for course in attempts)
+            except Exception as e:
+                messages.error(request, f"Result not complete yet")
+                return redirect("/check/result/filter")
             # Calculate GPA
             gpa = total_points / total_credit_units if total_credit_units > 0 else 0
 
@@ -2894,6 +2839,7 @@ def ParentResultFilter(request):
                     "total_course": len(attempts),
                     "session": session.year,
                     "semester": semester.name,
+                    "matricNum": matricNumber,
                 },
             )
         else:
@@ -2917,26 +2863,26 @@ def ParentResultFilter(request):
     )
 
 
-def ResultView(request):
-    if request.user.is_authenticated:
-        user = request.user
-        student = get_object_or_404(Student, user=user)
+# def ResultView(request):
+#     if request.user.is_authenticated:
+#         user = request.user
+#         student = get_object_or_404(Student, user=user)
 
-        level = get_object_or_404(Level, name=student.currentLevel)
-        current_session_model = Session.objects.filter(is_current=True).first()
-        current_semester_model = Semester.objects.filter(is_current=True).first()
+#         level = get_object_or_404(Level, name=student.currentLevel)
+#         current_session_model = Session.objects.filter(is_current=True).first()
+#         current_semester_model = Semester.objects.filter(is_current=True).first()
 
-        if request.method == "POST":
-            template = request.POST["template"]
+#         if request.method == "POST":
+#             template = request.POST["template"]
 
-        return render(request, "parents/resultview.html")
+#         return render(request, "parents/resultview.html",)
 
 
 
 def ParentResultView(request):
     
 
-    level = get_object_or_404(Level, name=student.currentLevel)
+    # level = get_object_or_404(Level, name=student.currentLevel)
     current_session_model = Session.objects.filter(is_current=True).first()
     current_semester_model = Semester.objects.filter(is_current=True).first()
 

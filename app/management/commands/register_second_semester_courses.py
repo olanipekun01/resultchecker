@@ -1,3 +1,5 @@
+# python manage.py register_second_semester_courses
+
 import uuid
 from django.core.management.base import BaseCommand
 from app.models import Student, Course, Session, Semester, Registration, Department, Programme
