@@ -91,6 +91,7 @@
                 {% endfor %}
               </tbody>
             </table>
+            
 
             <button class='hover:bg-neutral-100 text-[#6A32A1] px-[15px] py-[10px] bg-transparent border border-neutral-300 hover:border-[#6A32A1] duration-300 rounded-md shadow'>Submit</button>
         
@@ -114,6 +115,8 @@
 
         <!-- Table -->
         <div class="overflow-x-auto">
+          <form class='flex flex-col gap-4' method='post' action='/print'>
+          {% csrf_token %}
           <table class="w-full table-auto border-collapse border border-gray-200">
             <!-- Table Header -->
             <thead class="bg-gray-100">
@@ -150,6 +153,13 @@
 
             </tbody>
           </table>
+          <input type="hidden" name="sess" value="{{ unique_sessions|get_item:i }}">
+            <input type="hidden" name="semes" value="first">
+
+            {% comment %} <p id="warning" style="color: red; display: none;">You have exceeded the maximum allowed units!</p> {% endcomment %}
+
+            <button class='bg-[#077105] text-[#fff] px-[15px] py-[10px] hover:bg-[#fff] hover:text-[#077105] hover:border-[1px] hover:border-[#077105]'>Print</button>
+        </form>
         </div>
 
         <div class="p-4 text-center">
@@ -158,6 +168,8 @@
 
       <!-- Table -->
         <div class="overflow-x-auto">
+          <form class='flex flex-col gap-4' method='post' action='/print'>
+          {% csrf_token %}
           <table class="w-full table-auto border-collapse border border-gray-200">
             <!-- Table Header -->
             <thead class="bg-gray-100">
@@ -193,7 +205,16 @@
               {% endfor %}
 
             </tbody>
+            
           </table>
+            <input type="hidden" name="sess" value="{{ unique_sessions|get_item:i }}">
+            <input type="hidden" name="semes" value="second">
+
+            {% comment %} <p id="warning" style="color: red; display: none;">You have exceeded the maximum allowed units!</p> {% endcomment %}
+
+            <button class='bg-[#077105] text-[#fff] px-[15px] py-[10px] hover:bg-[#fff] hover:text-[#077105] hover:border-[1px] hover:border-[#077105]'>Print</button>
+        </form>
+
         </div>
       </div>
       <hr class="mt-4">

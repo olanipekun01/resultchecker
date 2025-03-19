@@ -1,3 +1,5 @@
+# python manage.py import_courses "E:\ACONSAdata\coursesecondsemesternd1.csv"
+
 import csv
 import os
 import uuid
@@ -35,18 +37,18 @@ class Command(BaseCommand):
                 for row in reader:
                     try:
                         # Get or create related objects
-                        department = Department.objects.get(name=row['department'])  # or use name=row['department']
-                        level = Level.objects.get(name=row['level'])  # or use name=row['level']
-                        semester = Semester.objects.get(name=row['semester'])  # or use name=row['semester']
+                        department = Department.objects.get(name=row['department'].strip())  # or use name=row['department']
+                        level = Level.objects.get(name=row['level'].strip())  # or use name=row['level']
+                        semester = Semester.objects.get(name=row['semester'].strip())  # or use name=row['semester']
 
                         # Create course object
                         course = Course(
                             id=uuid.uuid4(),
-                            title=row['title'],
-                            courseCode=row['courseCode'],
-                            unit=int(row['unit']) if row['unit'] else None,
-                            status=row.get('status', 'C'),  # Default to 'C' if not provided
-                            category=row.get('category', 'NNC'),  # Default to 'NNC' if not provided
+                            title=row['title'].strip(),
+                            courseCode=row['courseCode'].strip(),
+                            unit=int(row['unit']) if row['unit'].strip() else None,
+                            status=row.get('status', 'C').strip(),  # Default to 'C' if not provided
+                            category=row.get('category', 'NNC').strip(),  # Default to 'NNC' if not provided
                             department=department,
                             level=level,
                             semester=semester
@@ -54,8 +56,8 @@ class Command(BaseCommand):
                         course.save()
 
                         # Handle programmes (assuming comma-separated IDs or names)
-                        if 'programme' in row and row['programme']:
-                            programme_list = row['programme'].split(',')
+                        if 'programme' in row and row['programme'].strip():
+                            programme_list = row['programme'].strip().split(',')
                             for prog in programme_list:
                                 try:
                                     programme = Programme.objects.get(name=prog.strip())  # or use name=prog.strip()

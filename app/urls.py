@@ -15,6 +15,7 @@ urlpatterns = [
     path('course/delete/<str:id>', views.CourseDelete, name="course_delete"),
     path('result/filter/', views.ResultFilter, name="resultfilter"),
     path('result/view/', views.ResultView, name="resultview"),
+    path('print', views.printCopy, name="print"),
 
     path('contact/', views.Contact, name="contact"),
 

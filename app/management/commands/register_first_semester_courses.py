@@ -2,7 +2,7 @@
 
 import uuid
 from django.core.management.base import BaseCommand
-from app.models import Student, Course, Session, Semester, Registration, Department, Programme
+from app.models import Student, Course, Level, confirmRegister, Session, Semester, Registration, Department, Programme
 
 class Command(BaseCommand):
     help = 'Register all students for first-semester courses'
@@ -61,6 +61,7 @@ class Command(BaseCommand):
                             )
                             registration.save()
                             success_count += 1
+
                             self.stdout.write(self.style.SUCCESS(
                                 f"Registered {student.matricNumber} for {course.courseCode}"
                             ))
@@ -74,7 +75,17 @@ class Command(BaseCommand):
                             f"Error registering {student.matricNumber} for {course.courseCode}: {str(e)}"
                         ))
                         error_count += 1
+                
+                confirm_reg = confirmRegister(
+                    id=uuid.uuid4(),
+                    student=student,
+                    session=current_session,
+                    semester=first_semester,
+                    level=Level.objects.get(name=student.currentLevel),
+                    totalUnits = '28'
+                )
 
+                confirm_reg.save()
             self.stdout.write(self.style.SUCCESS(
                 f"Registration completed: {success_count} registrations created, {error_count} errors"
             ))

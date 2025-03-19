@@ -74,6 +74,252 @@ current_academic_session = "2025/2026"
 current_academic_semester = "second"
 
 
+def generate_course_pdf(reg_course, student, session, semester, confirmReg):
+    class PDF(FPDF, HTMLMixin):
+        def header(self):
+            # logo
+            self.image("aconsa_logo.png", 10, 4, 20)
+            # font
+            self.set_font("helvetica", "B", 14)
+            # padding
+            # self.cell(0)
+            # Title
+            self.cell(
+                179,
+                0,
+                "ACHIEVERS COLLEGE OF NURSING SCIENCES, AKURE",
+                border=False,
+                ln=1,
+                align="C",
+            )
+            # line break
+            self.ln(1)
+
+            self.set_font("helvetica", "B", 10)
+            # padding
+            # self.cell(75)
+            # Title
+            self.cell(
+                170,
+                7,
+                "a subsidiary of",
+                border=False,
+                ln=1,
+                align="C",
+            )
+            self.ln(1)
+
+            self.set_font("helvetica", "B", 11)
+            # padding
+            # self.cell(75)
+            # Title
+            self.cell(
+                170, 5, "ACHIEVERS UNIVERSITY, OWO", border=False, ln=1, align="C"
+            )
+            self.ln(1)
+
+            self.set_font("helvetica", "B", 10)
+            # padding
+            # self.cell(75)
+            # Title
+            self.cell(
+                170,
+                7,
+                "www.achieversnursingcollege.edu.ng",
+                border=False,
+                ln=1,
+                align="C",
+            )
+            self.ln(1)
+
+            self.set_font("helvetica", "B", 11)
+            # padding
+            # self.cell(75)
+            # Title
+            self.cell(170, 5, "Notification of Result", border=False, ln=1, align="C")
+            self.ln(1)
+
+            # logo
+            self.image("aconsa_logo.png", 170, 4, 23)
+
+    pdf = PDF("P", "mm", "Letter")
+
+    # set auto page break
+    pdf.set_auto_page_break(auto=True, margin=15)
+
+    pdf.add_page()
+
+    pdf.ln()
+
+    pdf.set_font("times", "B", 6)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(129, 4, f"Printed on: {datetime.now()}")
+
+    pdf.set_font("times", "B", 10)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(
+        0,
+        4,
+        f" {confirmReg.session.year} || {confirmReg.semester.name.upper()} SEMESTER",
+        ln=True,
+    )
+
+    pdf.set_font("times", "B", 10)
+    pdf.set_fill_color(118, 43, 102)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(
+        180, 7, f"   :. Students' Personal Information", ln=True, fill=True, align="L"
+    )
+
+    pdf.set_font("helvetica", "BIU", 13)
+    pdf.set_font("times", "B", 7)
+
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(60, 7, f"FUll NAME:")
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 7, f"{student.surname.upper()}, {student.otherNames.upper()}", ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(60, 7, f"MATRIC NO / JAMB NO:")
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 7, f"{student.matricNumber.upper()} [95753342EC]", ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(60, 7, f"FACULTY / COLLEGE:")
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 7, f"{student.college.name.upper()}", ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(60, 7, f"PROGRAMME:")
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 7, f"{student.programme.name.upper()}", ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(60, 7, f"DEGREE:")
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 7, f"{student.degree.upper()} {student.programme.name.upper()}", ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(60, 7, f"EMAIL / PHONE NO:")
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 7, f"{student.primaryEmail} || {student.studentPhoneNumber}", ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(60, 7, f"LEVEL:")
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(
+        0,
+        7,
+        f"{confirmReg.level.name.upper()}",
+    )
+
+    if student.passport:
+        image_path = os.path.join(settings.MEDIA_ROOT, student.passport.name)
+
+        if os.path.exists(image_path):
+
+            pdf.image(image_path, 170, 50, 23)
+
+    pdf.ln()
+
+    # pdf.cell(100, 10, 'Title', border=0, fill=True)
+    # pdf.cell(15, 10, 'Unit', border=0, fill=True)
+
+    # pdf.set_font('Arial', 'B', 8)
+    # pdf.set_fill_color(0, 0, 0)
+    # pdf.set_text_color(255, 255, 255)
+    # pdf.cell(25, 8, 'Code', border=1, fill=True)
+    # pdf.cell(100, 8, 'Title', border=1, fill=True)
+    # pdf.cell(15, 8, 'Unit', border=1, fill=True)
+    # pdf.cell(15, 8, 'Status', border=1, fill=True)
+    # pdf.cell(30, 8, 'Signature', border=1, fill=True)
+    # pdf.ln()
+
+    # Add table rows with padding and borders
+    pdf.set_font("Arial", "B", 6)
+    pdf.set_text_color(0, 0, 0)
+    unit = 0
+    for co in reg_course:
+        pdf.cell(25, 4, f"{co.course.courseCode.upper()}", border=1)
+        pdf.cell(100, 4, f"{co.course.title.upper()}", border=1)
+        pdf.cell(15, 4, f"{co.course.unit}", border=1)
+        pdf.cell(30, 4, f"{co.course.status.upper()}", border=1)
+        pdf.cell(15, 4, f"", border=1)
+        pdf.ln()
+        unit += co.course.unit
+
+    pdf.set_font("Arial", "B", 6)
+    pdf.cell(25, 4, f"", border=1)
+    pdf.cell(100, 4, f"Total Registered Units", border=1)
+    pdf.cell(15, 4, f"{unit}", border=1)
+    pdf.cell(30, 4, f"", border=1)
+    pdf.cell(15, 4, f"", border=1)
+    pdf.ln()
+
+    pdf.set_font("helvetica", "BIU", 16)
+    pdf.set_font("times", "", 9)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 7, f"Key: C=Compulsory, E=Elective, R=Required", ln=True)
+
+    pdf.ln(4)
+
+    pdf.set_font("helvetica", "BIU", 16)
+    pdf.set_font("times", "", 7)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(145, 7, f"Signature of Student: _____________________________________")
+    pdf.cell(0, 7, f"Date: __________________________", ln=True)
+
+    pdf.set_font("times", "B", 10)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(180, 7, f"FOR OFFICIAL USE ONLY", align="C", ln=True)
+
+    pdf.set_font("times", "B", 6)
+    pdf.set_text_color(255, 0, 0)
+    pdf.cell(
+        180,
+        2,
+        f"I certify that the above named student has submitted four(4) copies of his/her first semester course registration form and he/she is qualified to register the above listed courses",
+        align="C",
+        ln=True,
+    )
+
+    pdf.ln(6)
+
+    pdf.set_font("helvetica", "BIU", 16)
+    pdf.set_font("times", "", 7)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(145, 7, f"Signature of Academic Advisor: ____________________________")
+    pdf.cell(0, 7, f"Date: __________________________", ln=True)
+    pdf.ln(6)
+
+    pdf.set_font("helvetica", "BIU", 16)
+    pdf.set_font("times", "", 7)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(145, 7, f"Signature of H.O.D.: _____________________________________")
+    pdf.cell(0, 7, f"Date: __________________________", ln=True)
+    pdf.ln(6)
+
+    pdf.set_font("helvetica", "BIU", 16)
+    pdf.set_font("times", "", 7)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(145, 7, f"Signature of DEAN: _____________________________________")
+    pdf.cell(0, 7, f"Date: __________________________", ln=True)
+
+    pdf.ln(3)
+
+    pdf.set_font("times", "B", 6)
+    pdf.set_text_color(255, 0, 0)
+    pdf.cell(
+        180,
+        2,
+        f"Note:This form should be printed and returned to the Examination Officer at least Four weeks before the commencement of the examinations.",
+        align="C",
+        ln=True,
+    )
+    pdf.cell(
+        180,
+        2,
+        f"No Candidate shall be allowed to write any \nexamination in any course unless he/she has satisfied appropriate registration & finanacial regulations.",
+        align="C",
+    )
+
+    return pdf
+
+
 def generate_pdf(reg_course, student, session, semester, confirmReg, gpa):
     class PDF(FPDF, HTMLMixin):
         def header(self):
@@ -370,7 +616,7 @@ def Courses(request):
             # Handle the case where no registrations exist
             total_units = total_units or 0
 
-            if total_units <= 24:
+            if total_units <= 30:
                 for id in courses:
 
                     course = (get_object_or_404(Course, id=id),)
@@ -637,6 +883,46 @@ def Courses(request):
         )
 
     # return render(request, "user/courses.html", {"student": 'student'})
+
+
+@login_required
+@user_passes_test(is_student, login_url="/404")
+def printCopy(request):
+    if request.user.is_authenticated:
+        user = request.user
+        student = get_object_or_404(Student, user=user)
+ 
+
+    if request.method == "GET":
+        return redirect("/")
+
+    if request.method == "POST":
+        sess = request.POST["sess"]
+        semes = request.POST["semes"]
+        reg_courses = Registration.objects.filter(
+            student=student,
+            semester=get_object_or_404(Semester, name=semes),
+            session=get_object_or_404(Session, year=sess),
+            instructor_remark="approved"
+        )
+
+        confirmReg = confirmRegister.objects.filter(
+            student=student,
+            semester=get_object_or_404(Semester, name=semes),
+            session=get_object_or_404(Session, year=sess),
+        ).first()
+
+        gen = generate_course_pdf(reg_courses, student, sess, semes, confirmReg)
+
+        gen.output("fpdfdemo.pdf", "F")
+
+        response = HttpResponse(
+            gen.output(dest="S").encode("latin1"), content_type="application/pdf"
+        )
+        # response['Content-Disposition'] = 'attachment; filename="fpdfdemo.pdf"'
+
+        response["Content-Disposition"] = 'inline; filename="preview.pdf"'
+        return response
 
 
 @login_required
@@ -2252,56 +2538,57 @@ def manageAddStudent(request):
                 with transaction.atomic():
                     for _, row in df.iterrows():
                         # Fetch related foreign key objects
-                        print("row", row)
-                        college = College.objects.get(name=row['college'])
-                        department = Department.objects.get(name=row["department"])
-                        programme = Programme.objects.get(name=row["programme"])
+                        def safe_strip(value):
+                            return str(value).strip() if isinstance(value, str) else str(value) if value is not None else ""
+                        college = College.objects.get(name=safe_strip(row['college']))
+                        department = Department.objects.get(name=safe_strip(row["department"]))
+                        programme = Programme.objects.get(name=safe_strip(row["programme"]))
                         # print('session', row["currentSession"])
                         # session = Session.objects.get(year=row["currentSession"])
 
-                        print(
-                            "gender", row["gender"]
-                        )
+                        
 
                         # Create a CustomUser (assuming email is primary key)
                         user, created = CustomUser.objects.update_or_create(
-                            email=row["primaryEmail"].strip(),
+                            email=safe_strip(row["primaryEmail"]),
                             defaults={
-                                "username": row["primaryEmail"],
-                                "first_name": row["otherNames"],
-                                "last_name": row["surname"],
+                                "username": safe_strip(row["primaryEmail"]),
+                                "first_name": safe_strip(row["otherNames"]),
+                                "last_name": safe_strip(row["surname"]),
                                 "user_type": "student",
                             },
                         )
 
-                        user.set_password(row["surname"].lower())
+                        user.set_password(safe_strip(row["surname"]).lower())
                         user.save()
 
                         # Create or update a Student record
                         student, created = Student.objects.update_or_create(
                             user=user,
                             defaults={
-                                "otherNames": row["otherNames"],
-                                "surname": row["surname"],
-                                "currentLevel": Level.objects.get(name=row["currentLevel"]),
-                                "entryLevel": Level.objects.get(name=row["entryLevel"]),
+                                "otherNames": safe_strip(row["otherNames"]),
+                                "surname": safe_strip(row["surname"]),
+                                "currentLevel": Level.objects.get(name=safe_strip(row["currentLevel"])),
+                                "entryLevel": Level.objects.get(name=safe_strip(row["entryLevel"])),
                                 "currentSession": current_session_model.year,
-                                "matricNumber": row["matricNumber"],
-                                "jambNumber": row["jambNumber"],
+                                "matricNumber": safe_strip(row["matricNumber"]),
+                                "jambNumber": safe_strip(row["jambNumber"]),
                                 "dateOfBirth": datetime.strptime(
-                                    row["dateOfBirth"], "%m/%d/%Y"
+                                    safe_strip(row["dateOfBirth"]), "%m/%d/%Y"
                                 ).strftime("%Y-%m-%d"),
-                                "gender": row["gender"],
-                                "studentPhoneNumber": row["studentPhoneNumber"],
+                                "gender": safe_strip(row["gender"]),
+                                "studentPhoneNumber": safe_strip(row["studentPhoneNumber"]),
                                 "college": college,
                                 "department": department,
                                 "programme": programme,
-                                "primaryEmail": row["primaryEmail"],
-                                "degree": row["degree"],
-                                "modeOfEntry": row["modeOfEntry"],
-                                "studentEmail": row["studentEmail"],
-                                "entrySession": row["entrySession"],
+                                "primaryEmail": safe_strip(row["primaryEmail"]),
+                                "degree": safe_strip(row["degree"]),
+                                "modeOfEntry": safe_strip(row["modeOfEntry"]),
+                                "studentEmail": safe_strip(row["studentEmail"]),
                                 "student_stream": "b",
+                                "nationality": safe_strip(row["nationality"]),
+                                "stateOfOrigin": safe_strip(row["stateOfOrigin"]),
+                                "localGovtArea": safe_strip(row["localGovtArea"]),
                             },
                         )
 
