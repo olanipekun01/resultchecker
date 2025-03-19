@@ -107,8 +107,8 @@ class Student(models.Model):
     )
 
     GENDER_CHOICES = (
-        ('female', 'female'),
-        ('male', 'male'),
+        ('f', 'female'),
+        ('m', 'male'),
     )
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, primary_key=True)
     otherNames = models.CharField(blank=True, null=True, max_length=80)
@@ -136,7 +136,7 @@ class Student(models.Model):
     localGovtArea = models.CharField(blank=True, null=True, max_length=110)
     passport = models.ImageField(upload_to="images/", default='images/placeholder.png', null=True, blank=True)
     student_status =  models.CharField(blank=True, choices=STUDENTSTATUS_CHOICES, default='inprogress', null=True, max_length=100)
-    student_stream = models.CharField(blank=True, choices=STUDENTSTREAM_CHOICES, default='b', null=True, max_length=100)
+    student_stream = models.CharField(blank=True, default='b', null=True, max_length=100)
     
     # passport = models.ImageField(upload_to="images/")
     def __str__(self):
